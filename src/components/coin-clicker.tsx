@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, Zap } from 'lucide-react';
-import exampleImage from 'figma:asset/0eb2b2ddc20c81d0c02bee553eb93794b5408429.png';
+import exampleImage from '../assets/0eb2b2ddc20c81d0c02bee553eb93794b5408429.png';
 
 interface CoinClickerProps {
   onMine: () => void;
