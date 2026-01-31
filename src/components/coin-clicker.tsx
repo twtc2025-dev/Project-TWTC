@@ -1,30 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Zap, Play, Clock } from 'lucide-react';
 import exampleImage from '../assets/0eb2b2ddc20c81d0c02bee553eb93794b5408429.png';
+import { Button } from './ui/button';
 
 interface CoinClickerProps {
   onMine: () => void;
   clickPower: number;
   isAutoMining: boolean;
   balance: number;
+  lastMiningTime: number;
+  miningActive: boolean;
+  onStartCycle: () => void;
 }
 
-export function CoinClicker({ onMine, clickPower, isAutoMining, balance }: CoinClickerProps) {
+export function CoinClicker({ 
+  onMine, 
+  clickPower, 
+  isAutoMining, 
+  balance, 
+  lastMiningTime, 
+  miningActive,
+  onStartCycle 
+}: CoinClickerProps) {
   const [clickEffect, setClickEffect] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [timeLeft, setTimeLeft] = useState('');
+
+  const MINING_CYCLE_MS = 4 * 60 * 60 * 1000;
+
+  useEffect(() => {
+    if (miningActive) {
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const diff = MINING_CYCLE_MS - (now - lastMiningTime);
+        if (diff <= 0) {
+          setTimeLeft('00:00:00');
+          clearInterval(interval);
+        } else {
+          const h = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
+          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+          const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+          setTimeLeft(`${h}:${m}:${s}`);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setTimeLeft('04:00:00');
+    }
+  }, [miningActive, lastMiningTime]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!miningActive) return;
     onMine();
-    
-    // Create click effect
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
     const effect = { id: Date.now(), x, y };
     setClickEffect(prev => [...prev, effect]);
-    
-    // Remove effect after animation
     setTimeout(() => {
       setClickEffect(prev => prev.filter(eff => eff.id !== effect.id));
     }, 1000);
@@ -32,97 +64,67 @@ export function CoinClicker({ onMine, clickPower, isAutoMining, balance }: CoinC
 
   return (
     <div className="relative flex flex-col items-center justify-center">
-      {/* Balance Display */}
       <div className="text-center mb-6 space-y-1">
         <p className="text-sm text-muted-foreground">Your Balance:</p>
         <div className="flex items-center justify-center gap-2">
-          <img src={exampleImage} alt="W-Coin" className="h-8 w-8 rounded-full" />
+          <img src={exampleImage} alt="Coin" className="h-8 w-8 rounded-full" />
           <h2 className="text-4xl font-bold text-glow">
-            {balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+            {balance.toLocaleString('en-US', { maximumFractionDigits: 1 })}
           </h2>
         </div>
       </div>
 
-      {/* Feature Buttons */}
-      <div className="flex items-center gap-3 mb-8">
-        <button className="px-6 py-2.5 rounded-full bg-purple-600/20 border border-purple-500/40 text-purple-400 hover:bg-purple-600/30 transition-all flex items-center gap-2 glow-purple">
-          <Sparkles className="h-4 w-4" />
-          W-Galaxy
-        </button>
-        <button className="px-6 py-2.5 rounded-full bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-600/30 transition-all flex items-center gap-2 glow-cyan">
-          <Zap className="h-4 w-4" />
-          W-AI
-        </button>
+      <div className="flex flex-col items-center gap-4 mb-8 w-full px-8">
+        {!miningActive ? (
+          <Button 
+            onClick={onStartCycle}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 font-bold text-lg shadow-lg glow-purple animate-pulse"
+          >
+            <Play className="mr-2 h-5 w-5" /> Start 4h Mining Cycle
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-2xl border border-white/10 w-full justify-center">
+            <Clock className="h-5 w-5 text-cyan-400" />
+            <span className="font-mono text-xl font-bold text-cyan-400">{timeLeft}</span>
+          </div>
+        )}
       </div>
 
-      {/* 3D Coin */}
-      <div className="relative mb-8">
+      <div className="relative mb-4">
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={miningActive ? { scale: 1.05 } : {}}
+          whileTap={miningActive ? { scale: 0.95 } : {}}
           onClick={handleClick}
-          className="relative h-64 w-64 rounded-full coin-3d cursor-pointer overflow-hidden"
+          className={`relative h-64 w-64 rounded-full coin-3d overflow-hidden ${!miningActive ? 'opacity-50 grayscale' : 'cursor-pointer'}`}
         >
-          {/* Coin Logo */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative z-10">
-              <svg
-                viewBox="0 0 100 100"
-                className="h-32 w-32 text-gray-200/90"
-                fill="currentColor"
-              >
-                <text
-                  x="50"
-                  y="65"
-                  fontSize="60"
-                  fontFamily="Arial, sans-serif"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  fill="currentColor"
-                >
-                  W
-                </text>
-              </svg>
+              <span className="text-7xl font-black text-white/20 select-none">T</span>
             </div>
           </div>
-
-          {/* Shine Effect */}
           <div className="absolute inset-0 coin-shine opacity-40" />
-
-          {/* Rotating Ring */}
           <motion.div
-            className="absolute inset-0 border-8 border-gray-400/30 rounded-full"
-            animate={{ rotate: 360 }}
+            className="absolute inset-0 border-8 border-cyan-400/30 rounded-full"
+            animate={miningActive ? { rotate: 360 } : {}}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            style={{
-              borderStyle: 'dashed',
-              borderSpacing: '10px'
-            }}
+            style={{ borderStyle: 'dashed' }}
           />
-
-          {/* Click effects */}
           {clickEffect.map((effect) => (
             <motion.div
               key={effect.id}
               initial={{ opacity: 1, scale: 1, x: effect.x - 128, y: effect.y - 128 }}
-              animate={{ 
-                opacity: 0, 
-                scale: 1.5, 
-                y: effect.y - 178 
-              }}
-              transition={{ duration: 1 }}
-              className="absolute pointer-events-none text-purple-400 font-bold text-xl text-glow"
+              animate={{ opacity: 0, scale: 2, y: effect.y - 200 }}
+              transition={{ duration: 0.8 }}
+              className="absolute pointer-events-none text-cyan-400 font-bold text-2xl"
               style={{ left: 128, top: 128 }}
             >
               +{clickPower}
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Auto Mining Indicator */}
         {isAutoMining && (
           <motion.div
-            className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 glow-purple"
+            className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 shadow-xl"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
@@ -130,6 +132,11 @@ export function CoinClicker({ onMine, clickPower, isAutoMining, balance }: CoinC
           </motion.div>
         )}
       </div>
+      {!miningActive && (
+        <p className="text-sm text-purple-400 font-medium animate-bounce mt-2">
+          Click the button above to start mining!
+        </p>
+      )}
     </div>
   );
 }
