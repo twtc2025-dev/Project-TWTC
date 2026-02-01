@@ -70,6 +70,8 @@ const initialAchievements: Achievement[] = [
   { id: 'click-master', name: 'Global Traveler', description: 'Active for 1 day', target: 1, current: 0, completed: false, claimed: false, reward: 50, iconKey: 'click-master', category: 'mining' }
 ];
 
+import { Sidebar } from './components/sidebar';
+
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(() => {
     const saved = localStorage.getItem('twtc-v3-state');
@@ -343,10 +345,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-cyber-gradient pb-24 overflow-hidden text-white">
-      <div className="relative z-10 max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6">
+    <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex">
+      {/* Sidebar - Desktop Only */}
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <div className="relative z-10 flex-1 max-w-md mx-auto md:ml-[100px] lg:ml-[120px] md:max-w-4xl pt-6 md:pt-10">
+        {/* Header - Hidden on Desktop Sidebar View if needed, but keeping for mobile */}
+        <div className="flex items-center justify-between p-6 md:hidden">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20" />
             <h1 className="text-xl font-bold tracking-tight text-white/90">TWTC Network</h1>
@@ -387,7 +392,7 @@ export default function App() {
           )}
 
           <div className="space-y-4 mt-6">
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar md:hidden">
                <Button variant={activeTab === 'mine' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mine')}>Mine</Button>
                <Button variant={activeTab === 'mates' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mates')}>Mates</Button>
                <Button variant={activeTab === 'tasks' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('tasks')}>Tasks</Button>
@@ -400,7 +405,9 @@ export default function App() {
           </div>
         </div>
       </div>
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unclaimedAchievements={gameState.achievements.filter(a => a.completed && !a.claimed).length} />
+      <div className="md:hidden">
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unclaimedAchievements={gameState.achievements.filter(a => a.completed && !a.claimed).length} />
+      </div>
     </div>
   );
 }
