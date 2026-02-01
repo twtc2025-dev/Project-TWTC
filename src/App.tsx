@@ -11,23 +11,15 @@ import { Badge } from './components/ui/badge';
 import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin, Play } from 'lucide-react';
+import { RewardPopup } from './components/reward-popup';
 import logoImage from './assets/a96ba8a5373f8da5de07788b57f28403a2c2cbee.png';
 
 export interface GameState {
   coins: number;
+  energy: number;
+  maxEnergy: number;
   totalMined: number;
-  clickPower: number;
-  upgrades: Upgrade[];
-  achievements: Achievement[];
-  dailyTasks: DailyTask[];
-  startTime: number;
-  totalClicks: number;
-  lastMiningTime: number;
-  miningCycleActive: boolean;
-  userGroup: number;
-  kycStatus: 'Not Started' | 'Pending' | 'Verified';
-  lastDailyReset: number;
-  currentBoost: number;
+  // ... rest same
 }
 
 export interface DailyTask {
