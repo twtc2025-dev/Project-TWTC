@@ -76,8 +76,8 @@ export function AnimatedCounter({
 
   return (
     <div className={`relative inline-flex items-center justify-center transition-all duration-300 ${getAnimationClass()}`}>
-      <span className={`transition-colors duration-300 ${getColorClass()} ${className}`}>
-        {prefix}{displayValue.toLocaleString('en-US', { maximumFractionDigits: type === 'mining' ? 1 : 0 })}
+      <span className={`text-pixel text-twtc-cyan transition-colors duration-300 ${className}`}>
+        {prefix}{displayValue.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
       </span>
       
       {/* Flash Glow Effect */}

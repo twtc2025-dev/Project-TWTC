@@ -263,7 +263,7 @@ export default function App() {
               TWTC 
               <AnimatedCounter 
                 value={gameState.coins} 
-                className="text-sm font-mono text-cyan-400"
+                className="text-2xl"
                 prefix="₿"
                 type="mining"
               />

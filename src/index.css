@@ -1,2 +1,19 @@
 @import "tailwindcss";
 @import "./styles/globals.css";
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+@theme {
+  --font-pixel: "VT323", monospace;
+  --color-twtc-cyan: #00e5ff;
+}
+
+.text-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.05em;
+}
+
+.text-twtc-cyan {
+  color: #00e5ff;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
