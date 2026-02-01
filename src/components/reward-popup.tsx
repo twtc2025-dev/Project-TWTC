@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Sparkles, Trophy } from 'lucide-react';
-import { AnimatedCounter } from './animated-counter';
+import { AnimatedCounter } from './ui/animated-counter';
 
 interface RewardPopupProps {
   isOpen: boolean;
