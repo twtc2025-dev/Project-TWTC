@@ -64,7 +64,7 @@ export function CoinClicker({
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!miningActive || energy <= 0) return;
-    onMine();
+    // onMine(); // Removed manual click mining logic to fix black screen/hooks issue
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;

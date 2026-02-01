@@ -245,23 +245,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-cyber-gradient pb-24 overflow-hidden text-white">
       <div className="relative z-10 max-w-md mx-auto">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-wider flex items-center gap-2">
-              TWTC 
-              <AnimatedCounter 
-                value={displayBalance} 
-                className="text-2xl"
-                prefix="₿"
-                type="mining"
-              />
-            </h1>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight text-white/90">TWTC Network</h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="border-purple-500/50 text-purple-400">
               Group {gameState.userGroup}
             </Badge>
-            <Shield className={`h-5 w-5 ${gameState.kycStatus === 'Verified' ? 'text-green-500' : 'text-gray-500'}`} />
+            <Shield className={`h-6 w-6 ${gameState.kycStatus === 'Verified' ? 'text-green-500' : 'text-white/20'}`} />
           </div>
         </div>
 
