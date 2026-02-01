@@ -49,7 +49,7 @@ export function UserProfile({
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white mb-1">Web3 Explorer</h2>
-            <p className="text-slate-400 text-sm font-mono">ID: #{gameState.startTime.toString().slice(-6)}</p>
+            <p className="text-slate-400 text-sm font-mono">ID: #{gameState.startTime ? gameState.startTime.toString().slice(-6) : '000000'}</p>
             <div className="flex gap-2 mt-2">
               <Badge variant="secondary" className={`${kycColors[gameState.kycStatus]} text-white border-0`}>
                 KYC: {gameState.kycStatus}

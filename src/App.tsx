@@ -104,11 +104,148 @@ export default function App() {
       kycStatus: 'Not Started',
       lastDailyReset: Date.now(),
       miningStartTime: Date.now(),
-      bonusFromTasks: 0
+      bonusFromTasks: 0,
+      currentBoost: 1
     };
   });
 
   const [activeTab, setActiveTab] = useState('mine');
+  const [showBoostQuiz, setShowBoostQuiz] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [rewardAmount, setRewardAmount] = useState<number | null>(null);
+
+  const calculateCurrentBalance = (state: GameState) => {
+    const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
+    const timeBasedCoins = elapsedSecs * MINING_RATE_PER_SEC;
+    return timeBasedCoins + state.bonusFromTasks;
+  };
+
+  const [displayBalance, setDisplayBalance] = useState(() => calculateCurrentBalance(gameState));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDisplayBalance(calculateCurrentBalance(gameState));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [gameState]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    if (now - gameState.lastDailyReset > oneDay) {
+      setGameState(prev => ({
+        ...prev,
+        dailyTasks: initialDailyTasks,
+        lastDailyReset: now
+      }));
+      toast.info('Daily tasks have been reset!');
+    }
+  }, [gameState.lastDailyReset]);
+
+  useEffect(() => {
+    localStorage.setItem('twtc-v3-state', JSON.stringify({
+      ...gameState,
+      coins: displayBalance
+    }));
+  }, [gameState, displayBalance]);
+
+  const startMiningCycle = useCallback(() => {
+    if (gameState.energy < 100) {
+      toast.error('Not enough energy to start cycle!');
+      return;
+    }
+    toast.promise(
+      new Promise((resolve) => setTimeout(resolve, 3000)),
+      {
+        loading: 'Loading mandatory 60s Tourism Ad...',
+        success: () => {
+          setGameState(prev => ({
+            ...prev,
+            energy: prev.energy - 100,
+            miningCycleActive: true,
+            lastMiningTime: Date.now(),
+            currentBoost: 1
+          }));
+          return 'Mining cycle started! Active for 4 hours.';
+        },
+        error: 'Failed to load ad.'
+      }
+    );
+  }, [gameState.energy]);
+
+  const handleBoost = useCallback(() => {
+    if (!gameState.miningCycleActive) {
+      toast.error('Start a mining cycle first!');
+      return;
+    }
+    const tourismVideos = [
+      { id: 'v1', title: 'Nature of Switzerland', country: 'Switzerland', question: 'What is the highest mountain in Switzerland?', answer: 'Matterhorn', options: ['Matterhorn', 'Mont Blanc', 'Mount Everest', 'Fuji'] },
+      { id: 'v2', title: 'Culture of Japan', country: 'Japan', question: 'What is the traditional Japanese dress called?', answer: 'Kimono', options: ['Hanbok', 'Sari', 'Kimono', 'Toga'] }
+    ];
+    const randomVideo = tourismVideos[Math.floor(Math.random() * tourismVideos.length)];
+    setSelectedVideo(randomVideo);
+    toast.info(`Watching video: ${randomVideo.title}...`);
+    setTimeout(() => {
+      setShowBoostQuiz(true);
+    }, 2000);
+  }, [gameState.miningCycleActive]);
+
+  const submitQuiz = (selectedOption: string) => {
+    if (selectedOption === selectedVideo.answer) {
+      setGameState(prev => ({
+        ...prev,
+        currentBoost: prev.currentBoost + 0.5
+      }));
+      toast.success('Correct answer! +50% Boost active.');
+    } else {
+      toast.error('Incorrect answer. No boost granted.');
+    }
+    setShowBoostQuiz(false);
+    setSelectedVideo(null);
+  };
+
+  const handleTaskComplete = useCallback((taskId: string) => {
+    setGameState(prev => {
+      const task = prev.dailyTasks.find(t => t.id === taskId);
+      if (!task || task.completed) return prev;
+      setRewardAmount(task.reward);
+      return {
+        ...prev,
+        bonusFromTasks: prev.bonusFromTasks + task.reward,
+        dailyTasks: prev.dailyTasks.map(t => t.id === taskId ? { ...t, completed: true } : t)
+      };
+    });
+  }, []);
+
+  const handleClaimAchievement = useCallback((achievementId: string) => {
+    setGameState(prev => {
+      const achievement = prev.achievements.find(a => a.id === achievementId);
+      if (!achievement || !achievement.completed || achievement.claimed) return prev;
+      setRewardAmount(achievement.reward);
+      return {
+        ...prev,
+        bonusFromTasks: prev.bonusFromTasks + achievement.reward,
+        achievements: prev.achievements.map(a => a.id === achievementId ? { ...a, claimed: true } : a)
+      };
+    });
+  }, []);
+
+  const handleMine = useCallback(() => {
+    if (!gameState.miningCycleActive) {
+      toast.error('Start a mining cycle first!');
+      return;
+    }
+    if (gameState.energy <= 0) {
+      toast.error('Out of energy!');
+      return;
+    }
+    setGameState(prev => ({
+      ...prev,
+      energy: prev.energy - 1,
+      totalMined: prev.totalMined + prev.clickPower * prev.currentBoost,
+      totalClicks: prev.totalClicks + 1
+    }));
+  }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
   const renderContent = () => {
     switch (activeTab) {
