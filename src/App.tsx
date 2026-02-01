@@ -152,29 +152,37 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const miningRate = gameState.upgrades.reduce((total, upgrade) => {
-    return total + (upgrade.baseProduction * upgrade.count);
-  }, 0.5) * gameState.currentBoost;
+  const miningRate = (40 / (4 * 60 * 60)) * gameState.currentBoost; // 40 coins per 4 hours, adjusted by boost
 
+  // Real-time accumulation (every 3 seconds for realism)
   useEffect(() => {
     if (gameState.miningCycleActive) {
       const interval = setInterval(() => {
         const now = Date.now();
-        if (now - gameState.lastMiningTime > MINING_CYCLE_MS) {
-          setGameState(prev => ({ ...prev, miningCycleActive: false }));
-          setRewardAmount(40); // Base reward for 4h cycle
+        const elapsedMs = now - gameState.lastMiningTime;
+        
+        if (elapsedMs > MINING_CYCLE_MS) {
+          setGameState(prev => ({ 
+            ...prev, 
+            miningCycleActive: false,
+            coins: prev.coins + (MINING_CYCLE_MS / 1000) * (40 / (4 * 60 * 60)) * prev.currentBoost // Ensure full 40 coins at end
+          }));
+          setRewardAmount(40 * gameState.currentBoost);
+          toast.success('Mining Complete! 40 Coins Added');
           return;
         }
         
+        // Update coins based on elapsed time since last update or just fixed interval
+        // For a "realistic" counter, we add small increments every 3 seconds
         setGameState(prev => ({
           ...prev,
-          coins: prev.coins + miningRate / 10,
-          totalMined: prev.totalMined + miningRate / 10
+          coins: prev.coins + (miningRate * 3), // rate per sec * 3 sec interval
+          totalMined: prev.totalMined + (miningRate * 3)
         }));
-      }, 100);
+      }, 3000); 
       return () => clearInterval(interval);
     }
-  }, [gameState.miningCycleActive, miningRate, gameState.lastMiningTime]);
+  }, [gameState.miningCycleActive, miningRate, gameState.lastMiningTime, gameState.currentBoost]);
 
   const startMiningCycle = useCallback(() => {
     if (gameState.energy < 100) {

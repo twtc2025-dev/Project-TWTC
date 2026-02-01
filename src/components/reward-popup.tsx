@@ -12,6 +12,15 @@ interface RewardPopupProps {
 }
 
 export function RewardPopup({ isOpen, reward, onClose, title = "Reward Claimed!" }: RewardPopupProps) {
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000); // Auto-dismiss after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, onClose]);
+
   return (
     <AnimatePresence>
       {isOpen && (
