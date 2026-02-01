@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { Star, Zap, Users, ClipboardList, TrendingUp, Cpu, User, ChevronRight, LayoutGrid, Gamepad2, Settings, History, Shield, Trophy, HelpCircle, Gift } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -5,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./ui/popover";
-import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 
 interface SidebarProps {
