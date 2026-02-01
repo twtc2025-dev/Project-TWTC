@@ -254,7 +254,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-cyber-gradient pb-24 overflow-hidden text-white">
-      <div className="fixed inset-0 bg-neon-glow pointer-events-none" />
       <div className="relative z-10 max-w-md mx-auto">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
