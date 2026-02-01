@@ -14,6 +14,8 @@ import { RewardPopup } from './components/reward-popup';
 
 import logo from './assets/logo.jpg';
 
+import { UserProfile } from './components/user-profile';
+
 export interface GameState {
   coins: number;
   energy: number;
@@ -106,143 +108,102 @@ export default function App() {
     };
   });
 
-  const [activeTab, setActiveTab] = useState('mates');
-  const [showBoostQuiz, setShowBoostQuiz] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<any>(null);
-  const [rewardAmount, setRewardAmount] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('mine');
 
-  const calculateCurrentBalance = (state: GameState) => {
-    const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
-    const timeBasedCoins = elapsedSecs * MINING_RATE_PER_SEC;
-    return timeBasedCoins + state.bonusFromTasks;
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return (
+          <UserProfile
+            gameState={gameState}
+            onEditProfile={() => toast.info("Profile editing coming soon!")}
+            onViewTasks={() => setActiveTab('tasks')}
+            onTransactionHistory={() => toast.info("Transaction history coming soon!")}
+            onStartMining={startMiningCycle}
+          />
+        );
+      case 'mates':
+        return (
+          <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
+            <CardHeader><CardTitle className="text-lg">Community - Group {gameState.userGroup}</CardTitle></CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">Collaborate with fellow Group {gameState.userGroup} miners.</p>
+              <div className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 text-sm">
+                🌍 Explore destinations together and share rewards!
+              </div>
+            </CardContent>
+          </Card>
+        );
+      case 'tasks':
+        return (
+          <div className="space-y-4 h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+            <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
+              <CardHeader><CardTitle className="text-lg">Daily Tourism Tasks</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {gameState.dailyTasks.map(task => (
+                  <div key={task.id} className={`p-3 rounded-lg border flex justify-between items-center ${task.completed ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-white/10'}`}>
+                    <div>
+                      <p className="font-medium text-sm">{task.name}</p>
+                      <p className="text-xs text-muted-foreground">{task.description}</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant={task.completed ? "outline" : "default"}
+                      disabled={task.completed}
+                      onClick={() => handleTaskComplete(task.id)}
+                    >
+                      {task.completed ? 'Done' : `+${task.reward}`}
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <Achievements achievements={gameState.achievements} onClaim={handleClaimAchievement} getAchievementIcon={(key) => initialAchievements.find(a => a.iconKey === key)?.iconKey || Target} />
+          </div>
+        );
+      case 'staking':
+        return (
+          <UpgradeShop
+            upgrades={gameState.upgrades}
+            coins={displayBalance}
+            onPurchase={() => toast.info("Upgrades are managed by the network automatically.")}
+            getUpgradeIcon={(key) => initialUpgrades.find(u => u.iconKey === key)?.iconKey || Cpu}
+          />
+        );
+      case 'boost':
+        return (
+          <div className="space-y-4">
+            <Card className="bg-card/50 backdrop-blur-sm border-cyan-500/20">
+              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MapPin className="text-cyan-400" /> Tourism Boost</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Watch a tourism video and answer a question to boost your mining rate by 50% for this cycle.</p>
+                <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={handleBoost}>
+                  Watch Video Boost
+                </Button>
+                <div className="text-center">
+                   <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">Active Boost: {(gameState.currentBoost * 100).toFixed(0)}%</Badge>
+                </div>
+              </CardContent>
+            </Card>
+            <MiningStats coins={displayBalance} miningRate={MINING_RATE_PER_SEC * 3600} totalMined={gameState.totalMined} startTime={gameState.startTime} />
+          </div>
+        );
+      default:
+        return (
+          <CoinClicker
+            onMine={handleMine}
+            clickPower={gameState.clickPower}
+            isAutoMining={gameState.miningCycleActive}
+            balance={displayBalance}
+            lastMiningTime={gameState.lastMiningTime}
+            miningActive={gameState.miningCycleActive}
+            onStartCycle={startMiningCycle}
+            energy={gameState.energy}
+            maxEnergy={gameState.maxEnergy}
+          />
+        );
+    }
   };
-
-  const [displayBalance, setDisplayBalance] = useState(() => calculateCurrentBalance(gameState));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDisplayBalance(calculateCurrentBalance(gameState));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [gameState]);
-
-  useEffect(() => {
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    if (now - gameState.lastDailyReset > oneDay) {
-      setGameState(prev => ({
-        ...prev,
-        dailyTasks: initialDailyTasks,
-        lastDailyReset: now
-      }));
-      toast.info('Daily tasks have been reset!');
-    }
-  }, [gameState.lastDailyReset]);
-
-  useEffect(() => {
-    localStorage.setItem('twtc-v3-state', JSON.stringify({
-      ...gameState,
-      coins: displayBalance
-    }));
-  }, [gameState, displayBalance]);
-
-  const startMiningCycle = useCallback(() => {
-    if (gameState.energy < 100) {
-      toast.error('Not enough energy to start cycle!');
-      return;
-    }
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-      {
-        loading: 'Loading mandatory 60s Tourism Ad...',
-        success: () => {
-          setGameState(prev => ({
-            ...prev,
-            energy: prev.energy - 100,
-            miningCycleActive: true,
-            lastMiningTime: Date.now(),
-            currentBoost: 1
-          }));
-          return 'Mining cycle started! Active for 4 hours.';
-        },
-        error: 'Failed to load ad.'
-      }
-    );
-  }, [gameState.energy]);
-
-  const handleBoost = useCallback(() => {
-    if (!gameState.miningCycleActive) {
-      toast.error('Start a mining cycle first!');
-      return;
-    }
-    const tourismVideos = [
-      { id: 'v1', title: 'Nature of Switzerland', country: 'Switzerland', question: 'What is the highest mountain in Switzerland?', answer: 'Matterhorn', options: ['Matterhorn', 'Mont Blanc', 'Mount Everest', 'Fuji'] },
-      { id: 'v2', title: 'Culture of Japan', country: 'Japan', question: 'What is the traditional Japanese dress called?', answer: 'Kimono', options: ['Hanbok', 'Sari', 'Kimono', 'Toga'] }
-    ];
-    const randomVideo = tourismVideos[Math.floor(Math.random() * tourismVideos.length)];
-    setSelectedVideo(randomVideo);
-    toast.info(`Watching video: ${randomVideo.title}...`);
-    setTimeout(() => {
-      setShowBoostQuiz(true);
-    }, 2000);
-  }, [gameState.miningCycleActive]);
-
-  const submitQuiz = (selectedOption: string) => {
-    if (selectedOption === selectedVideo.answer) {
-      setGameState(prev => ({
-        ...prev,
-        currentBoost: prev.currentBoost + 0.5
-      }));
-      toast.success('Correct answer! +50% Boost active.');
-    } else {
-      toast.error('Incorrect answer. No boost granted.');
-    }
-    setShowBoostQuiz(false);
-    setSelectedVideo(null);
-  };
-
-  const handleTaskComplete = useCallback((taskId: string) => {
-    setGameState(prev => {
-      const task = prev.dailyTasks.find(t => t.id === taskId);
-      if (!task || task.completed) return prev;
-      setRewardAmount(task.reward);
-      return {
-        ...prev,
-        bonusFromTasks: prev.bonusFromTasks + task.reward,
-        dailyTasks: prev.dailyTasks.map(t => t.id === taskId ? { ...t, completed: true } : t)
-      };
-    });
-  }, []);
-
-  const handleClaimAchievement = useCallback((achievementId: string) => {
-    setGameState(prev => {
-      const achievement = prev.achievements.find(a => a.id === achievementId);
-      if (!achievement || !achievement.completed || achievement.claimed) return prev;
-      setRewardAmount(achievement.reward);
-      return {
-        ...prev,
-        bonusFromTasks: prev.bonusFromTasks + achievement.reward,
-        achievements: prev.achievements.map(a => a.id === achievementId ? { ...a, claimed: true } : a)
-      };
-    });
-  }, []);
-
-  const handleMine = useCallback(() => {
-    if (!gameState.miningCycleActive) {
-      toast.error('Start a mining cycle first!');
-      return;
-    }
-    if (gameState.energy <= 0) {
-      toast.error('Out of energy!');
-      return;
-    }
-    setGameState(prev => ({
-      ...prev,
-      energy: prev.energy - 1,
-      totalMined: prev.totalMined + prev.clickPower * prev.currentBoost,
-      totalClicks: prev.totalClicks + 1
-    }));
-  }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
   return (
     <div className="min-h-screen bg-cyber-gradient pb-24 overflow-hidden text-white">
@@ -262,18 +223,6 @@ export default function App() {
         </div>
 
         <div className="px-4">
-          <CoinClicker
-            onMine={handleMine}
-            clickPower={gameState.clickPower}
-            isAutoMining={gameState.miningCycleActive}
-            balance={displayBalance}
-            lastMiningTime={gameState.lastMiningTime}
-            miningActive={gameState.miningCycleActive}
-            onStartCycle={startMiningCycle}
-            energy={gameState.energy}
-            maxEnergy={gameState.maxEnergy}
-          />
-
           <RewardPopup 
             isOpen={rewardAmount !== null}
             reward={rewardAmount || 0}
@@ -302,6 +251,7 @@ export default function App() {
 
           <div className="space-y-4 mt-6">
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+               <Button variant={activeTab === 'mine' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mine')}>Mine</Button>
                <Button variant={activeTab === 'mates' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mates')}>Mates</Button>
                <Button variant={activeTab === 'tasks' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('tasks')}>Tasks</Button>
                <Button variant={activeTab === 'boost' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('boost')}>Boost</Button>
@@ -309,112 +259,7 @@ export default function App() {
                <Button variant={activeTab === 'profile' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('profile')}>Profile</Button>
             </div>
 
-            {activeTab === 'profile' && (
-              <div className="space-y-4">
-                <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <img src={logo} alt="User Profile" className="h-16 w-16 rounded-full border-2 border-purple-500/50" />
-                    <div>
-                      <CardTitle className="text-xl">Traveler #{gameState.userGroup}{gameState.coins.toFixed(0)}</CardTitle>
-                      <Badge variant="outline" className="mt-1 border-purple-500/50 text-purple-400">
-                        {gameState.kycStatus}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-xs text-muted-foreground uppercase">Total Mined</p>
-                        <p className="text-lg font-bold text-cyan-400">{gameState.totalMined.toFixed(2)}</p>
-                      </div>
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-xs text-muted-foreground uppercase">Group</p>
-                        <p className="text-lg font-bold text-purple-400">{gameState.userGroup}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => window.location.href = "/api/logout"}>
-                      Logout
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-card/50 backdrop-blur-sm border-cyan-500/20">
-                  <CardHeader><CardTitle className="text-sm">Account Verification (KYC)</CardTitle></CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground mb-4">Verify your identity to unlock global withdrawals and elite travel benefits.</p>
-                    <Button variant="secondary" className="w-full" disabled={gameState.kycStatus === 'Verified'}>
-                      {gameState.kycStatus === 'Verified' ? 'Verified' : 'Start Verification'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'mates' && (
-              <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
-                <CardHeader><CardTitle className="text-lg">Community - Group {gameState.userGroup}</CardTitle></CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">Collaborate with fellow Group {gameState.userGroup} miners.</p>
-                  <div className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 text-sm">
-                    🌍 Explore destinations together and share rewards!
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeTab === 'tasks' && (
-              <div className="space-y-4 h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
-                  <CardHeader><CardTitle className="text-lg">Daily Tourism Tasks</CardTitle></CardHeader>
-                  <CardContent className="space-y-3">
-                    {gameState.dailyTasks.map(task => (
-                      <div key={task.id} className={`p-3 rounded-lg border flex justify-between items-center ${task.completed ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-white/10'}`}>
-                        <div>
-                          <p className="font-medium text-sm">{task.name}</p>
-                          <p className="text-xs text-muted-foreground">{task.description}</p>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant={task.completed ? "outline" : "default"}
-                          disabled={task.completed}
-                          onClick={() => handleTaskComplete(task.id)}
-                        >
-                          {task.completed ? 'Done' : `+${task.reward}`}
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-                <Achievements achievements={gameState.achievements} onClaim={handleClaimAchievement} getAchievementIcon={(key) => initialAchievements.find(a => a.iconKey === key)?.iconKey || Target} />
-              </div>
-            )}
-
-            {activeTab === 'staking' && (
-              <UpgradeShop
-                upgrades={gameState.upgrades}
-                coins={displayBalance}
-                onPurchase={() => toast.info("Upgrades are managed by the network automatically.")}
-                getUpgradeIcon={(key) => initialUpgrades.find(u => u.iconKey === key)?.iconKey || Cpu}
-              />
-            )}
-
-            {activeTab === 'boost' && (
-              <div className="space-y-4">
-                <Card className="bg-card/50 backdrop-blur-sm border-cyan-500/20">
-                  <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MapPin className="text-cyan-400" /> Tourism Boost</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Watch a tourism video and answer a question to boost your mining rate by 50% for this cycle.</p>
-                    <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={handleBoost}>
-                      Watch Video Boost
-                    </Button>
-                    <div className="text-center">
-                       <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">Active Boost: {(gameState.currentBoost * 100).toFixed(0)}%</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-                <MiningStats coins={displayBalance} miningRate={MINING_RATE_PER_SEC * 3600} totalMined={gameState.totalMined} startTime={gameState.startTime} />
-              </div>
-            )}
+            {renderContent()}
           </div>
         </div>
       </div>
