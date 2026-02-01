@@ -257,7 +257,6 @@ export default function App() {
       <div className="relative z-10 max-w-md mx-auto">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <img src={logoImage} alt="Logo" className="h-10 w-10" />
             <h1 className="text-2xl font-bold tracking-wider flex items-center gap-2">
               TWTC 
               <AnimatedCounter 
