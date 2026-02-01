@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
 import { Badge } from './components/ui/badge';
+import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin, Play } from 'lucide-react';
 import logoImage from './assets/a96ba8a5373f8da5de07788b57f28403a2c2cbee.png';
@@ -258,7 +259,15 @@ export default function App() {
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <img src={logoImage} alt="Logo" className="h-10 w-10" />
-            <h1 className="text-2xl font-bold tracking-wider">TWTC</h1>
+            <h1 className="text-2xl font-bold tracking-wider flex items-center gap-2">
+              TWTC 
+              <AnimatedCounter 
+                value={gameState.coins} 
+                className="text-sm font-mono text-cyan-400"
+                prefix="₿"
+                type="mining"
+              />
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="border-purple-500/50 text-purple-400">

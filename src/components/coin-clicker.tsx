@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, Zap, Play, Clock } from 'lucide-react';
+import { AnimatedCounter } from './ui/animated-counter';
 import exampleImage from '../assets/0eb2b2ddc20c81d0c02bee553eb93794b5408429.png';
 import { Button } from './ui/button';
 
@@ -69,7 +70,12 @@ export function CoinClicker({
         <div className="flex items-center justify-center gap-2">
           <img src={exampleImage} alt="Coin" className="h-8 w-8 rounded-full" />
           <h2 className="text-4xl font-bold text-glow">
-            {balance.toLocaleString('en-US', { maximumFractionDigits: 1 })}
+            <AnimatedCounter 
+              value={balance} 
+              type="mining"
+              showSparkles={true}
+              className="text-white"
+            />
           </h2>
         </div>
       </div>
