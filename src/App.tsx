@@ -6,20 +6,29 @@ import { Achievements, Achievement } from './components/achievements';
 import { BottomNav } from './components/bottom-nav';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
-import { Progress } from './components/ui/progress';
 import { Badge } from './components/ui/badge';
 import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
-import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin, Play } from 'lucide-react';
+import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin } from 'lucide-react';
 import { RewardPopup } from './components/reward-popup';
-import logoImage from './assets/a96ba8a5373f8da5de07788b57f28403a2c2cbee.png';
 
 export interface GameState {
   coins: number;
   energy: number;
   maxEnergy: number;
   totalMined: number;
-  // ... rest same
+  clickPower: number;
+  upgrades: Upgrade[];
+  achievements: Achievement[];
+  dailyTasks: DailyTask[];
+  startTime: number;
+  totalClicks: number;
+  lastMiningTime: number;
+  miningCycleActive: boolean;
+  userGroup: number;
+  kycStatus: 'Not Started' | 'Pending' | 'Verified';
+  lastDailyReset: number;
+  currentBoost: number;
 }
 
 export interface DailyTask {
@@ -76,6 +85,8 @@ export default function App() {
       const parsed = JSON.parse(saved);
       return {
         ...parsed,
+        energy: parsed.energy ?? 1000,
+        maxEnergy: parsed.maxEnergy ?? 1000,
         startTime: parsed.startTime || Date.now(),
         userGroup: parsed.userGroup || Math.floor(Math.random() * 10) + 1,
         kycStatus: parsed.kycStatus || 'Not Started',
@@ -88,6 +99,8 @@ export default function App() {
     }
     return {
       coins: 0,
+      energy: 1000,
+      maxEnergy: 1000,
       totalMined: 0,
       clickPower: 1,
       upgrades: initialUpgrades,
@@ -107,8 +120,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('mates');
   const [showBoostQuiz, setShowBoostQuiz] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [rewardAmount, setRewardAmount] = useState<number | null>(null);
 
-  // Daily reset check
   useEffect(() => {
     const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;
@@ -122,23 +135,34 @@ export default function App() {
     }
   }, [gameState.lastDailyReset]);
 
-  // Persistence
   useEffect(() => {
     localStorage.setItem('tourism-mining-v1', JSON.stringify(gameState));
   }, [gameState]);
+
+  // Energy regeneration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGameState(prev => {
+        if (prev.energy < prev.maxEnergy) {
+          return { ...prev, energy: Math.min(prev.energy + 1, prev.maxEnergy) };
+        }
+        return prev;
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const miningRate = gameState.upgrades.reduce((total, upgrade) => {
     return total + (upgrade.baseProduction * upgrade.count);
   }, 0.5) * gameState.currentBoost;
 
-  // Auto-mining (only if cycle is active)
   useEffect(() => {
     if (gameState.miningCycleActive) {
       const interval = setInterval(() => {
         const now = Date.now();
         if (now - gameState.lastMiningTime > MINING_CYCLE_MS) {
           setGameState(prev => ({ ...prev, miningCycleActive: false }));
-          toast.info('Mining cycle finished. Start a new one!');
+          setRewardAmount(40); // Base reward for 4h cycle
           return;
         }
         
@@ -153,31 +177,36 @@ export default function App() {
   }, [gameState.miningCycleActive, miningRate, gameState.lastMiningTime]);
 
   const startMiningCycle = useCallback(() => {
+    if (gameState.energy < 100) {
+      toast.error('Not enough energy to start cycle!');
+      return;
+    }
+
     toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 3000)), // Simulate 60s ad but faster for UX
+      new Promise((resolve) => setTimeout(resolve, 3000)),
       {
         loading: 'Loading mandatory 60s Tourism Ad...',
         success: () => {
           setGameState(prev => ({
             ...prev,
+            energy: prev.energy - 100,
             miningCycleActive: true,
             lastMiningTime: Date.now(),
-            currentBoost: 1 // Reset boost on new cycle
+            currentBoost: 1
           }));
           return 'Mining cycle started! Active for 4 hours.';
         },
         error: 'Failed to load ad.'
       }
     );
-  }, []);
+  }, [gameState.energy]);
 
-  const handleBoost = useCallback((boostAmount: number) => {
+  const handleBoost = useCallback(() => {
     if (!gameState.miningCycleActive) {
       toast.error('Start a mining cycle first!');
       return;
     }
     
-    // Tourism Video Data
     const tourismVideos = [
       { id: 'v1', title: 'Nature of Switzerland', country: 'Switzerland', question: 'What is the highest mountain in Switzerland?', answer: 'Matterhorn', options: ['Matterhorn', 'Mont Blanc', 'Mount Everest', 'Fuji'] },
       { id: 'v2', title: 'Culture of Japan', country: 'Japan', question: 'What is the traditional Japanese dress called?', answer: 'Kimono', options: ['Hanbok', 'Sari', 'Kimono', 'Toga'] }
@@ -189,7 +218,7 @@ export default function App() {
     toast.info(`Watching video: ${randomVideo.title}...`);
     setTimeout(() => {
       setShowBoostQuiz(true);
-    }, 2000); // Simulate video duration
+    }, 2000);
   }, [gameState.miningCycleActive]);
 
   const submitQuiz = (selectedOption: string) => {
@@ -210,19 +239,20 @@ export default function App() {
     setGameState(prev => {
       const task = prev.dailyTasks.find(t => t.id === taskId);
       if (!task || task.completed) return prev;
+      setRewardAmount(task.reward);
       return {
         ...prev,
         coins: prev.coins + task.reward,
         dailyTasks: prev.dailyTasks.map(t => t.id === taskId ? { ...t, completed: true } : t)
       };
     });
-    toast.success('Task completed! Reward added.');
   }, []);
 
   const handleClaimAchievement = useCallback((achievementId: string) => {
     setGameState(prev => {
       const achievement = prev.achievements.find(a => a.id === achievementId);
       if (!achievement || !achievement.completed || achievement.claimed) return prev;
+      setRewardAmount(achievement.reward);
       return {
         ...prev,
         coins: prev.coins + achievement.reward,
@@ -236,13 +266,19 @@ export default function App() {
       toast.error('Start a mining cycle first!');
       return;
     }
+    if (gameState.energy <= 0) {
+      toast.error('Out of energy!');
+      return;
+    }
+
     setGameState(prev => ({
       ...prev,
+      energy: prev.energy - 1,
       coins: prev.coins + prev.clickPower * prev.currentBoost,
       totalMined: prev.totalMined + prev.clickPower * prev.currentBoost,
       totalClicks: prev.totalClicks + 1
     }));
-  }, [gameState.miningCycleActive, gameState.currentBoost]);
+  }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
   return (
     <div className="min-h-screen bg-cyber-gradient pb-24 overflow-hidden text-white">
@@ -276,6 +312,14 @@ export default function App() {
             lastMiningTime={gameState.lastMiningTime}
             miningActive={gameState.miningCycleActive}
             onStartCycle={startMiningCycle}
+            energy={gameState.energy}
+            maxEnergy={gameState.maxEnergy}
+          />
+
+          <RewardPopup 
+            isOpen={rewardAmount !== null}
+            reward={rewardAmount || 0}
+            onClose={() => setRewardAmount(null)}
           />
 
           {showBoostQuiz && selectedVideo && (
@@ -368,7 +412,7 @@ export default function App() {
                   <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MapPin className="text-cyan-400" /> Tourism Boost</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">Watch a tourism video and answer a question to boost your mining rate by 50% for this cycle.</p>
-                    <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={() => handleBoost(0.5)}>
+                    <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={handleBoost}>
                       Watch Video Boost
                     </Button>
                     <div className="text-center">
