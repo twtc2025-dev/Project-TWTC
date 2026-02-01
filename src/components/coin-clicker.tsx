@@ -80,7 +80,7 @@ export function CoinClicker({
             onClick={onStartCycle}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 font-bold text-lg shadow-lg glow-purple animate-pulse"
           >
-            <Play className="mr-2 h-5 w-5" /> Start 4h Mining Cycle
+            <Play className="mr-2 h-5 w-5" /> Start 4h Discovery Cycle
           </Button>
         ) : (
           <div className="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-2xl border border-white/10 w-full justify-center">
@@ -99,7 +99,7 @@ export function CoinClicker({
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative z-10">
-              <span className="text-7xl font-black text-white/20 select-none">T</span>
+              <span className="text-7xl font-black text-white/20 select-none">TW</span>
             </div>
           </div>
           <div className="absolute inset-0 coin-shine opacity-40" />
@@ -118,7 +118,7 @@ export function CoinClicker({
               className="absolute pointer-events-none text-cyan-400 font-bold text-2xl"
               style={{ left: 128, top: 128 }}
             >
-              +{clickPower}
+              +{clickPower.toFixed(1)}
             </motion.div>
           ))}
         </motion.div>
@@ -133,8 +133,8 @@ export function CoinClicker({
         )}
       </div>
       {!miningActive && (
-        <p className="text-sm text-purple-400 font-medium animate-bounce mt-2">
-          Click the button above to start mining!
+        <p className="text-sm text-purple-400 font-medium animate-bounce mt-2 text-center px-4">
+          Watching a 60s Tourism ad is required to start your discovery journey.
         </p>
       )}
     </div>

@@ -9,7 +9,7 @@ import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
 import { Badge } from './components/ui/badge';
 import { toast } from 'sonner';
-import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin } from 'lucide-react';
+import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin, Play } from 'lucide-react';
 import logoImage from './assets/a96ba8a5373f8da5de07788b57f28403a2c2cbee.png';
 
 export interface GameState {
@@ -88,7 +88,9 @@ export default function App() {
         kycStatus: parsed.kycStatus || 'Not Started',
         currentBoost: parsed.currentBoost || 1,
         lastDailyReset: parsed.lastDailyReset || Date.now(),
-        dailyTasks: parsed.dailyTasks || initialDailyTasks
+        dailyTasks: parsed.dailyTasks || initialDailyTasks,
+        miningCycleActive: parsed.miningCycleActive || false,
+        lastMiningTime: parsed.lastMiningTime || 0
       };
     }
     return {
@@ -110,6 +112,8 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState('mates');
+  const [showBoostQuiz, setShowBoostQuiz] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
   // Daily reset check
   useEffect(() => {
@@ -156,9 +160,8 @@ export default function App() {
   }, [gameState.miningCycleActive, miningRate, gameState.lastMiningTime]);
 
   const startMiningCycle = useCallback(() => {
-    // Simulate mandatory ad (60s simulation in UI usually, but here we just start)
     toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
+      new Promise((resolve) => setTimeout(resolve, 3000)), // Simulate 60s ad but faster for UX
       {
         loading: 'Loading mandatory 60s Tourism Ad...',
         success: () => {
@@ -176,12 +179,39 @@ export default function App() {
   }, []);
 
   const handleBoost = useCallback((boostAmount: number) => {
-    setGameState(prev => ({
-      ...prev,
-      currentBoost: prev.currentBoost + boostAmount
-    }));
-    toast.success(`Boost active! Mining rate increased by ${(boostAmount * 100).toFixed(0)}%`);
-  }, []);
+    if (!gameState.miningCycleActive) {
+      toast.error('Start a mining cycle first!');
+      return;
+    }
+    
+    // Tourism Video Data
+    const tourismVideos = [
+      { id: 'v1', title: 'Nature of Switzerland', country: 'Switzerland', question: 'What is the highest mountain in Switzerland?', answer: 'Matterhorn', options: ['Matterhorn', 'Mont Blanc', 'Mount Everest', 'Fuji'] },
+      { id: 'v2', title: 'Culture of Japan', country: 'Japan', question: 'What is the traditional Japanese dress called?', answer: 'Kimono', options: ['Hanbok', 'Sari', 'Kimono', 'Toga'] }
+    ];
+    
+    const randomVideo = tourismVideos[Math.floor(Math.random() * tourismVideos.length)];
+    setSelectedVideo(randomVideo);
+    
+    toast.info(`Watching video: ${randomVideo.title}...`);
+    setTimeout(() => {
+      setShowBoostQuiz(true);
+    }, 2000); // Simulate video duration
+  }, [gameState.miningCycleActive]);
+
+  const submitQuiz = (selectedOption: string) => {
+    if (selectedOption === selectedVideo.answer) {
+      setGameState(prev => ({
+        ...prev,
+        currentBoost: prev.currentBoost + 0.5
+      }));
+      toast.success('Correct answer! +50% Boost active.');
+    } else {
+      toast.error('Incorrect answer. No boost granted.');
+    }
+    setShowBoostQuiz(false);
+    setSelectedVideo(null);
+  };
 
   const handleTaskComplete = useCallback((taskId: string) => {
     setGameState(prev => {
@@ -228,7 +258,7 @@ export default function App() {
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <img src={logoImage} alt="Logo" className="h-10 w-10" />
-            <h1 className="text-2xl font-bold tracking-wider">TourismCoin</h1>
+            <h1 className="text-2xl font-bold tracking-wider">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="border-purple-500/50 text-purple-400">
@@ -249,14 +279,41 @@ export default function App() {
             onStartCycle={startMiningCycle}
           />
 
+          {showBoostQuiz && selectedVideo && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+              <Card className="w-full bg-card border-cyan-500/30">
+                <CardHeader>
+                  <CardTitle className="text-lg">Quiz: {selectedVideo.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="font-medium">{selectedVideo.question}</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {selectedVideo.options.map((opt: string) => (
+                      <Button key={opt} variant="outline" className="justify-start text-left hover:border-cyan-500" onClick={() => submitQuiz(opt)}>
+                        {opt}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           <div className="space-y-4 mt-6">
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+               <Button variant={activeTab === 'mates' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mates')}>Mates</Button>
+               <Button variant={activeTab === 'tasks' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('tasks')}>Tasks</Button>
+               <Button variant={activeTab === 'boost' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('boost')}>Boost</Button>
+               <Button variant={activeTab === 'staking' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('staking')}>Equipment</Button>
+            </div>
+
             {activeTab === 'mates' && (
               <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
-                <CardHeader><CardTitle className="text-lg">Travel Community</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg">Community - Group {gameState.userGroup}</CardTitle></CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-sm">Join Group {gameState.userGroup} members in exploring the world.</p>
+                  <p className="text-muted-foreground text-sm">Collaborate with fellow Group {gameState.userGroup} miners.</p>
                   <div className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 text-sm">
-                    🌍 Explore global landmarks and earn together!
+                    🌍 Explore destinations together and share rewards!
                   </div>
                 </CardContent>
               </Card>
@@ -265,7 +322,7 @@ export default function App() {
             {activeTab === 'tasks' && (
               <div className="space-y-4 h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                 <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
-                  <CardHeader><CardTitle className="text-lg">Daily Tasks (20 Left)</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-lg">Daily Tourism Tasks</CardTitle></CardHeader>
                   <CardContent className="space-y-3">
                     {gameState.dailyTasks.map(task => (
                       <div key={task.id} className={`p-3 rounded-lg border flex justify-between items-center ${task.completed ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-white/10'}`}>
@@ -289,18 +346,34 @@ export default function App() {
               </div>
             )}
 
+            {activeTab === 'staking' && (
+              <UpgradeShop
+                upgrades={gameState.upgrades}
+                coins={gameState.coins}
+                onPurchase={(id) => setGameState(prev => {
+                  const up = prev.upgrades.find(u => u.id === id);
+                  if (!up || prev.coins < up.baseCost) return prev;
+                  return {
+                    ...prev,
+                    coins: prev.coins - up.baseCost,
+                    upgrades: prev.upgrades.map(u => u.id === id ? { ...u, count: u.count + 1 } : u)
+                  }
+                })}
+                getUpgradeIcon={(key) => upgradeIcons[key as keyof typeof upgradeIcons]}
+              />
+            )}
+
             {activeTab === 'boost' && (
               <div className="space-y-4">
                 <Card className="bg-card/50 backdrop-blur-sm border-cyan-500/20">
                   <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MapPin className="text-cyan-400" /> Tourism Boost</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Watch a tourism video and answer a question to boost your mining rate for this cycle.</p>
-                    <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-                      <p className="font-bold text-cyan-400 mb-1">Featured Destination: Dubai</p>
-                      <p className="text-xs mb-3">Watch the 3-minute exploration video.</p>
-                      <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={() => handleBoost(0.5)}>
-                        Watch & Verify (+50% Boost)
-                      </Button>
+                    <p className="text-sm text-muted-foreground">Watch a tourism video and answer a question to boost your mining rate by 50% for this cycle.</p>
+                    <Button className="w-full bg-cyan-600 hover:bg-cyan-500" onClick={() => handleBoost(0.5)}>
+                      Watch Video Boost
+                    </Button>
+                    <div className="text-center">
+                       <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">Active Boost: {(gameState.currentBoost * 100).toFixed(0)}%</Badge>
                     </div>
                   </CardContent>
                 </Card>
