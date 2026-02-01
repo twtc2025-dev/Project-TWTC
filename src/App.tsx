@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play } from 'lucide-react';
 import { RewardPopup } from './components/reward-popup';
 
+import logo from './assets/logo.jpg';
+
 export interface GameState {
   coins: number;
   energy: number;
@@ -247,7 +249,8 @@ export default function App() {
       <div className="relative z-10 max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6">
-          <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20" />
             <h1 className="text-xl font-bold tracking-tight text-white/90">TWTC Network</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -303,7 +306,49 @@ export default function App() {
                <Button variant={activeTab === 'tasks' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('tasks')}>Tasks</Button>
                <Button variant={activeTab === 'boost' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('boost')}>Boost</Button>
                <Button variant={activeTab === 'staking' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('staking')}>Equipment</Button>
+               <Button variant={activeTab === 'profile' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('profile')}>Profile</Button>
             </div>
+
+            {activeTab === 'profile' && (
+              <div className="space-y-4">
+                <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <img src={logo} alt="User Profile" className="h-16 w-16 rounded-full border-2 border-purple-500/50" />
+                    <div>
+                      <CardTitle className="text-xl">Traveler #{gameState.userGroup}{gameState.coins.toFixed(0)}</CardTitle>
+                      <Badge variant="outline" className="mt-1 border-purple-500/50 text-purple-400">
+                        {gameState.kycStatus}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                        <p className="text-xs text-muted-foreground uppercase">Total Mined</p>
+                        <p className="text-lg font-bold text-cyan-400">{gameState.totalMined.toFixed(2)}</p>
+                      </div>
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                        <p className="text-xs text-muted-foreground uppercase">Group</p>
+                        <p className="text-lg font-bold text-purple-400">{gameState.userGroup}</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => window.location.href = "/api/logout"}>
+                      Logout
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-card/50 backdrop-blur-sm border-cyan-500/20">
+                  <CardHeader><CardTitle className="text-sm">Account Verification (KYC)</CardTitle></CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground mb-4">Verify your identity to unlock global withdrawals and elite travel benefits.</p>
+                    <Button variant="secondary" className="w-full" disabled={gameState.kycStatus === 'Verified'}>
+                      {gameState.kycStatus === 'Verified' ? 'Verified' : 'Start Verification'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {activeTab === 'mates' && (
               <Card className="bg-card/50 backdrop-blur-sm border-purple-500/20">
