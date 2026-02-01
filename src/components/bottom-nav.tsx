@@ -9,9 +9,10 @@ interface BottomNavProps {
 
 export function BottomNav({ activeTab, onTabChange, unclaimedAchievements = 0 }: BottomNavProps) {
   const navItems = [
+    { id: 'mine', label: 'Mine', icon: Rocket },
     { id: 'mates', label: 'Mates', icon: Users },
     { id: 'tasks', label: 'Tasks', icon: FileText, badge: unclaimedAchievements },
-    { id: 'staking', label: 'Staking', icon: Gem },
+    { id: 'staking', label: 'Tools', icon: Gem },
     { id: 'boost', label: 'Boost', icon: Rocket },
   ];
 

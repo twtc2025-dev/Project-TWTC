@@ -11,6 +11,7 @@ import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play } from 'lucide-react';
 import { RewardPopup } from './components/reward-popup';
+import { cn } from './lib/utils';
 
 import logo from './assets/logo.jpg';
 
@@ -69,8 +70,6 @@ const initialAchievements: Achievement[] = [
   { id: 'first-click', name: 'First Discovery', description: 'Start your tourism journey', target: 1, current: 0, completed: false, claimed: false, reward: 5, iconKey: 'first-click', category: 'mining' },
   { id: 'click-master', name: 'Global Traveler', description: 'Active for 1 day', target: 1, current: 0, completed: false, claimed: false, reward: 50, iconKey: 'click-master', category: 'mining' }
 ];
-
-import { Sidebar } from './components/sidebar';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -345,26 +344,23 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex">
-      {/* Sidebar - Desktop Only */}
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      <div className="relative z-10 flex-1 max-w-md mx-auto md:ml-[100px] lg:ml-[120px] md:max-w-4xl pt-6 md:pt-10">
-        {/* Header - Hidden on Desktop Sidebar View if needed, but keeping for mobile */}
-        <div className="flex items-center justify-between p-6 md:hidden">
+    <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex justify-center">
+      <div className="relative z-10 w-full max-w-md h-screen flex flex-col pt-2">
+        {/* Header - Styled as Mobile App Bar */}
+        <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20" />
-            <h1 className="text-xl font-bold tracking-tight text-white/90">TWTC Network</h1>
+            <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20 shadow-lg shadow-purple-500/20" />
+            <h1 className="text-lg font-bold tracking-tight text-white/90 uppercase">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-purple-500/50 text-purple-400">
+            <Badge variant="outline" className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-2 py-0">
               Group {gameState.userGroup}
             </Badge>
-            <Shield className={`h-6 w-6 ${gameState.kycStatus === 'Verified' ? 'text-green-500' : 'text-white/20'}`} />
+            <Shield className={`h-5 w-5 ${gameState.kycStatus === 'Verified' ? 'text-green-500' : 'text-white/20'}`} />
           </div>
         </div>
 
-        <div className="px-4">
+        <div className="flex-1 px-4 overflow-hidden flex flex-col">
           <RewardPopup 
             isOpen={rewardAmount !== null}
             reward={rewardAmount || 0}
@@ -391,22 +387,27 @@ export default function App() {
             </div>
           )}
 
-          <div className="space-y-4 mt-6">
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar md:hidden">
-               <Button variant={activeTab === 'mine' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mine')}>Mine</Button>
-               <Button variant={activeTab === 'mates' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('mates')}>Mates</Button>
-               <Button variant={activeTab === 'tasks' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('tasks')}>Tasks</Button>
-               <Button variant={activeTab === 'boost' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('boost')}>Boost</Button>
-               <Button variant={activeTab === 'staking' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('staking')}>Equipment</Button>
-               <Button variant={activeTab === 'profile' ? 'default' : 'outline'} size="sm" onClick={() => setActiveTab('profile')}>Profile</Button>
+          <div className="space-y-4 mt-2 flex-1 flex flex-col overflow-hidden">
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+               <Button variant={activeTab === 'mine' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'mine' && "bg-indigo-600")} onClick={() => setActiveTab('mine')}>Mine</Button>
+               <Button variant={activeTab === 'mates' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'mates' && "bg-indigo-600")} onClick={() => setActiveTab('mates')}>Mates</Button>
+               <Button variant={activeTab === 'tasks' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'tasks' && "bg-indigo-600")} onClick={() => setActiveTab('tasks')}>Tasks</Button>
+               <Button variant={activeTab === 'boost' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'boost' && "bg-indigo-600")} onClick={() => setActiveTab('boost')}>Boost</Button>
+               <Button variant={activeTab === 'staking' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'staking' && "bg-indigo-600")} onClick={() => setActiveTab('staking')}>Tools</Button>
+               <Button variant={activeTab === 'profile' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'profile' && "bg-indigo-600")} onClick={() => setActiveTab('profile')}>Profile</Button>
             </div>
 
-            {renderContent()}
+            <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
+              {renderContent()}
+            </div>
           </div>
         </div>
       </div>
-      <div className="md:hidden">
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unclaimedAchievements={gameState.achievements.filter(a => a.completed && !a.claimed).length} />
+      
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div className="w-full max-w-md pointer-events-auto">
+          <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unclaimedAchievements={gameState.achievements.filter(a => a.completed && !a.claimed).length} />
+        </div>
       </div>
     </div>
   );
