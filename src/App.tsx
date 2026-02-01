@@ -7,6 +7,7 @@ import { BottomNav } from './components/bottom-nav';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
+import { Badge } from './components/ui/badge';
 import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Settings, Menu, Bell, Shield, MapPin } from 'lucide-react';
 import logoImage from './assets/a96ba8a5373f8da5de07788b57f28403a2c2cbee.png';
