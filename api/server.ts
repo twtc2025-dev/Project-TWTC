@@ -2,8 +2,10 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
-import "./auth/google.js"; // أضف .js هنا إذا استمر الخطأ
-import authRoutes from "./routes/auth.js";
+
+// الاستيراد بدون امتدادات ملفات
+import "./auth/google"; 
+import authRoutes from "./routes/auth";
 
 const app = express();
 
@@ -26,7 +28,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get("/api/status", (req, res) => res.send("API is Online!"));
-
 app.use("/api/auth", authRoutes);
 
 export default app;
