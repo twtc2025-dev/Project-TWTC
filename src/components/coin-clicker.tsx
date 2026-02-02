@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Sparkles, Zap, Play, Clock, ZapOff } from 'lucide-react';
 import { AnimatedCounter } from './ui/animated-counter';
 import exampleImage from '../assets/0eb2b2ddc20c81d0c02bee553eb93794b5408429.png';
+import logo from '../assets/logo.jpg';
 import { Button } from './ui/button';
 
 interface CoinClickerProps {
@@ -92,7 +93,6 @@ export function CoinClicker({
         <p className="text-sm text-muted-foreground">Your Balance:</p>
         <div className="flex flex-col items-center justify-center">
           <div className="flex items-center justify-center gap-2">
-            <img src={exampleImage} alt="Coin" className="h-8 w-8 rounded-full" />
             <h2 className="text-4xl font-bold text-glow">
               <AnimatedCounter 
                 value={balance} 
@@ -101,6 +101,7 @@ export function CoinClicker({
                 className="text-white"
               />
             </h2>
+            <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20 shadow-lg" />
           </div>
         </div>
       </div>
