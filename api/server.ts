@@ -5,7 +5,7 @@ import cors from "cors";
 
 // الاستيراد بدون امتدادات ملفات
 import "./auth/google"; 
-import authRoutes from "./routes/auth";
+import authRoutes from "./routes/auth.js";
 
 const app = express();
 
