@@ -4,16 +4,15 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // تأكد أن هذا الرابط مطابق تماماً لما في Google Console و Vercel Env
+      // تم حذف علامة ! لضمان عدم انهيار السيرفر في Vercel
+      clientID: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://twtc-mining.vercel.app/api/auth/google/callback",
-      proxy: true // ضروري جداً لأن Vercel يعمل خلف Load Balancer/Proxy
+      proxy: true 
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
-        // profile يحتوي على (id, displayName, emails, photos)
-        // يمكنك هنا إضافة منطق تخزين المستخدم في قاعدة البيانات
+        // يتم إرجاع ملف المستخدم بنجاح
         return done(null, profile);
       } catch (error) {
         return done(error as Error, undefined);
@@ -22,12 +21,10 @@ passport.use(
   )
 );
 
-// تخزين بيانات المستخدم في الجلسة (Session)
 passport.serializeUser((user: any, done) => {
   done(null, user);
 });
 
-// استعادة بيانات المستخدم من الجلسة
 passport.deserializeUser((obj: any, done) => {
   done(null, obj);
 });
