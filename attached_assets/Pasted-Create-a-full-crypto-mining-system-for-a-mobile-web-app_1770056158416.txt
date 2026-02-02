@@ -1,0 +1,85 @@
+Create a full crypto mining system for a mobile/web application with modular architecture and unlimited growth.
+
+Mining System:
+
+Mining starts only when the user presses a “Start Mining” button.
+
+Each mining session lasts exactly 4 hours.
+
+Normal base mining produces 120 coins per day, divided into 6 sessions.
+
+Each session generates exactly 20 coins, distributed continuously per second during the 4-hour session.
+
+Users must manually start each new session after the previous one ends.
+
+There is no hard daily cap on total coins earned.
+
+Base mining values represent normal mining only, without boosts, tasks, or referrals.
+
+Tasks System:
+
+Provide a Tasks page with multiple tasks.
+
+Each task rewards exactly 10 coins.
+
+Tasks must be verified as completed before rewarding.
+
+Once verified, rewards are added immediately to the user’s total balance.
+
+Task rewards are not limited by mining values.
+
+Boost (Ads) System:
+
+Include a Boost Mining page with optional video ads.
+
+Each watched ad grants a +10% mining boost for the current mining session only.
+
+Maximum boost per session is 100%.
+
+Boost is applied progressively (10% per ad).
+
+Boost resets at the start of every new 4-hour session.
+
+Boost affects only mining output and does not affect tasks or referral rewards.
+
+Referral System:
+
+Users can invite others using a referral code or link.
+
+Each confirmed and active referral grants 50 coins (rewarded once per referral).
+
+Referral rewards are added directly to the total balance.
+
+Referral rewards are independent from mining sessions and boosts.
+
+General Rules:
+
+All rewards (mining, tasks, boosts, referrals) are cumulative.
+
+No reward type limits or blocks another.
+
+The system must allow unlimited total balance growth.
+
+All modules must be manageable via an admin dashboard.
+
+Referral Leaderboard System:
+
+Create a leaderboard page split into two top sections:
+
+Miner Referrals (user referral code + total referrals),
+
+Leaderboard (miners ranked by referral count).
+
+Display the top 3 miners in a podium style (gold, silver, bronze) with username/ID.
+
+Below the podium, list ranks 4–100 with username/ID and referral count.
+
+Rankings update daily based on referral activity.
+
+Handle ties by ranking users with earlier referrals higher.
+
+Automatically reward the top 3 miners daily, adding rewards cumulatively to their balance.
+
+Provide placeholders for avatars and allow leaderboard data export.
+
+Use a clean, modern crypto/gaming UI suitable for mobile and web.
