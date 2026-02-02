@@ -4,7 +4,6 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 passport.use(
   new GoogleStrategy(
     {
-      // تم حذف علامة ! لضمان عدم انهيار السيرفر في Vercel
       clientID: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://twtc-mining.vercel.app/api/auth/google/callback",
@@ -12,19 +11,18 @@ passport.use(
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
-        // يتم إرجاع ملف المستخدم بنجاح
         return done(null, profile);
       } catch (error) {
-        return done(error as Error, undefined);
+        return done(error, null);
       }
     }
   )
 );
 
-passport.serializeUser((user: any, done) => {
+passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser((obj: any, done) => {
+passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
