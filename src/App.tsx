@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./co
 import logo from './assets/logo.jpg';
 
 import { UserProfile } from './components/user-profile';
+import { AuthPage } from './components/auth-page';
 
 export interface GameState {
   coins: number;
@@ -116,6 +117,7 @@ export default function App() {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
@@ -370,6 +372,10 @@ export default function App() {
         );
     }
   };
+
+  if (!isAuthenticated) {
+    return <AuthPage onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex justify-center">
