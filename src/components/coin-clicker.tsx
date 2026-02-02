@@ -102,7 +102,6 @@ export function CoinClicker({
               />
             </h2>
           </div>
-          <span className="text-[10px] text-muted-foreground/60 font-medium mt-1">40/4h</span>
         </div>
       </div>
 
@@ -231,13 +230,18 @@ export function CoinClicker({
           ))}
         </motion.div>
         {isAutoMining && (
-          <motion.div
-            className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 shadow-xl z-20"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            <Zap className="h-4 w-4 text-white" />
-          </motion.div>
+          <div className="absolute -top-4 -right-8 flex flex-col items-center gap-1 z-20">
+            <motion.div
+              className="bg-green-500 rounded-full p-2 shadow-xl shadow-green-500/20"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <Zap className="h-4 w-4 text-white" />
+            </motion.div>
+            <span className="text-[11px] font-bold text-green-400 bg-black/40 px-2 py-0.5 rounded-full border border-green-500/30 backdrop-blur-sm whitespace-nowrap shadow-lg">
+              40/4h
+            </span>
+          </div>
         )}
       </div>
       {!miningActive && (
