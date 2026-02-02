@@ -90,16 +90,19 @@ export function CoinClicker({
     <div className="relative flex flex-col items-center justify-center">
       <div className="text-center mb-6 space-y-1">
         <p className="text-sm text-muted-foreground">Your Balance:</p>
-        <div className="flex items-center justify-center gap-2">
-          <img src={exampleImage} alt="Coin" className="h-8 w-8 rounded-full" />
-          <h2 className="text-4xl font-bold text-glow">
-            <AnimatedCounter 
-              value={balance} 
-              type="mining"
-              showSparkles={true}
-              className="text-white"
-            />
-          </h2>
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex items-center justify-center gap-2">
+            <img src={exampleImage} alt="Coin" className="h-8 w-8 rounded-full" />
+            <h2 className="text-4xl font-bold text-glow">
+              <AnimatedCounter 
+                value={balance} 
+                type="mining"
+                showSparkles={true}
+                className="text-white"
+              />
+            </h2>
+          </div>
+          <span className="text-[10px] text-muted-foreground/60 font-medium mt-1">40/4h</span>
         </div>
       </div>
 
