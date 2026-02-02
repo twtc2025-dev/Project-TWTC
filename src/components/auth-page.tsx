@@ -26,13 +26,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    // Simulate Google Login
-    setTimeout(() => {
-      onLogin({ name: 'Google User', email: 'google@example.com' });
-      setIsLoading(false);
-    }, 1000);
-  };
+  window.location.href = "/api/auth/google";
+};
+
 
   return (
     <div className="min-h-screen bg-cyber-gradient flex flex-col items-center justify-center p-6 text-white animate-in fade-in duration-500">
