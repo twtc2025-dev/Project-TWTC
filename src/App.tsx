@@ -349,10 +349,17 @@ export default function App() {
         {/* Header - Styled as Mobile App Bar */}
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Logo" className="h-8 w-8 rounded-full border border-white/20 shadow-lg shadow-purple-500/20" />
             <h1 className="text-lg font-bold tracking-tight text-white/90 uppercase">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-3 h-7 rounded-full"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              Login
+            </Button>
             <Badge variant="outline" className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-2 py-0">
               Group {gameState.userGroup}
             </Badge>
