@@ -18,6 +18,17 @@ import logo from './assets/logo.jpg';
 
 import { UserProfile } from './components/user-profile';
 import { AuthPage } from './components/auth-page';
+import { LogOut } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./components/ui/alert-dialog";
 
 export interface GameState {
   coins: number;
@@ -118,6 +129,7 @@ export default function App() {
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
@@ -277,6 +289,13 @@ export default function App() {
     }));
   }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setShowLogoutConfirm(false);
+    setIsDrawerOpen(false);
+    toast.success('Logged out successfully');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -421,6 +440,19 @@ export default function App() {
                       {item.label}
                     </Button>
                   ))}
+                  
+                  {isAuthenticated && (
+                    <div className="mt-auto pt-4 border-t border-white/5">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-3 h-12 rounded-xl text-base text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        onClick={() => setShowLogoutConfirm(true)}
+                      >
+                        <LogOut className="h-5 w-5" />
+                        تسجيل الخروج
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
@@ -482,6 +514,28 @@ export default function App() {
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unclaimedAchievements={gameState.achievements.filter(a => a.completed && !a.claimed).length} />
         </div>
       </div>
+
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent className="bg-cyber-gradient border-white/10 text-white max-w-[90vw] rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إنهاء جلستك الحالية.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel className="mt-0 flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl">
+              إلغاء
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleLogout}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white border-none rounded-xl"
+            >
+              تسجيل الخروج
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
