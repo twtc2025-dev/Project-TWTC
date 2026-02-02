@@ -2,8 +2,8 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
-import "./auth/google"; 
-import authRoutes from "./routes/auth";
+import "./auth/google.js"; // أضف .js هنا إذا استمر الخطأ
+import authRoutes from "./routes/auth.js";
 
 const app = express();
 
@@ -25,7 +25,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// هذا المسار سيؤكد لك أن الملف يعمل
 app.get("/api/status", (req, res) => res.send("API is Online!"));
 
 app.use("/api/auth", authRoutes);
