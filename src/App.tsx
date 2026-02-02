@@ -9,9 +9,10 @@ import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
-import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play } from 'lucide-react';
+import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play, Menu, X, Home, Users, CheckSquare, TrendingUp, Tool, User } from 'lucide-react';
 import { RewardPopup } from './components/reward-popup';
 import { cn } from './lib/utils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./components/ui/sheet";
 
 import logo from './assets/logo.jpg';
 
@@ -114,6 +115,7 @@ export default function App() {
   const [showBoostQuiz, setShowBoostQuiz] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
@@ -349,6 +351,47 @@ export default function App() {
         {/* Header - Styled as Mobile App Bar */}
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
+            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="bg-cyber-gradient border-white/10 text-white w-[280px] p-0">
+                <SheetHeader className="p-6 border-b border-white/5 bg-black/20">
+                  <div className="flex items-center gap-3">
+                    <img src={logo} alt="Logo" className="h-10 w-10 rounded-full border border-white/20 shadow-lg" />
+                    <SheetTitle className="text-xl font-bold text-white">TWTC Menu</SheetTitle>
+                  </div>
+                </SheetHeader>
+                <div className="flex flex-col p-4 gap-2">
+                  {[
+                    { id: 'mine', label: 'Mine', icon: Home },
+                    { id: 'mates', label: 'Mates', icon: Users },
+                    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+                    { id: 'boost', label: 'Boost', icon: Zap },
+                    { id: 'staking', label: 'Tools', icon: Cpu },
+                    { id: 'profile', label: 'Profile', icon: User },
+                  ].map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={activeTab === item.id ? 'default' : 'ghost'}
+                      className={cn(
+                        "w-full justify-start gap-3 h-12 rounded-xl text-base",
+                        activeTab === item.id ? "bg-indigo-600 hover:bg-indigo-500" : "hover:bg-white/5"
+                      )}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsDrawerOpen(false);
+                      }}
+                    >
+                      <item.icon className={cn("h-5 w-5", activeTab === item.id ? "text-white" : "text-white/60")} />
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
             <h1 className="text-lg font-bold tracking-tight text-white/90 uppercase">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -395,15 +438,6 @@ export default function App() {
           )}
 
           <div className="space-y-4 mt-2 flex-1 flex flex-col overflow-hidden">
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
-               <Button variant={activeTab === 'mine' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'mine' && "bg-indigo-600")} onClick={() => setActiveTab('mine')}>Mine</Button>
-               <Button variant={activeTab === 'mates' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'mates' && "bg-indigo-600")} onClick={() => setActiveTab('mates')}>Mates</Button>
-               <Button variant={activeTab === 'tasks' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'tasks' && "bg-indigo-600")} onClick={() => setActiveTab('tasks')}>Tasks</Button>
-               <Button variant={activeTab === 'boost' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'boost' && "bg-indigo-600")} onClick={() => setActiveTab('boost')}>Boost</Button>
-               <Button variant={activeTab === 'staking' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'staking' && "bg-indigo-600")} onClick={() => setActiveTab('staking')}>Tools</Button>
-               <Button variant={activeTab === 'profile' ? 'default' : 'ghost'} size="sm" className={cn("rounded-full px-4 text-xs h-8 whitespace-nowrap", activeTab === 'profile' && "bg-indigo-600")} onClick={() => setActiveTab('profile')}>Profile</Button>
-            </div>
-
             <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
               {renderContent()}
             </div>
