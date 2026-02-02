@@ -157,24 +157,49 @@ export default function App() {
       toast.error('Not enough energy to start cycle!');
       return;
     }
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-      {
-        loading: 'Loading mandatory 60s Tourism Ad...',
-        success: () => {
-          setGameState(prev => ({
-            ...prev,
-            energy: prev.energy - 100,
-            miningCycleActive: true,
-            lastMiningTime: Date.now(),
-            currentBoost: 1
-          }));
-          return 'Mining cycle started! Active for 4 hours.';
-        },
-        error: 'Failed to load ad.'
-      }
-    );
+    
+    // Simulate mining cycle start without page refresh or black screen
+    setGameState(prev => ({
+      ...prev,
+      energy: prev.energy - 100,
+      miningCycleActive: true,
+      lastMiningTime: Date.now(),
+      currentBoost: 1
+    }));
+    toast.success('Mining cycle started! Active for 4 hours.');
   }, [gameState.energy]);
+
+  const claimMiningReward = useCallback(() => {
+    const now = Date.now();
+    const elapsed = now - gameState.lastMiningTime;
+    const isReady = elapsed >= MINING_CYCLE_MS;
+
+    if (!gameState.miningCycleActive) {
+      toast.info('Start a mining cycle first');
+      return;
+    }
+
+    if (!isReady) {
+      toast.info('Mining in progress...', {
+        description: 'Wait for the cycle to complete to claim your reward.'
+      });
+      return;
+    }
+
+    // Logic for claiming 20 coins
+    const reward = 20;
+    setGameState(prev => ({
+      ...prev,
+      bonusFromTasks: prev.bonusFromTasks + reward,
+      miningCycleActive: false,
+      lastMiningTime: 0
+    }));
+    
+    setRewardAmount(reward);
+    toast.success(`${reward} Coins Added Successfully 🎉`, {
+      icon: '✔️'
+    });
+  }, [gameState.miningCycleActive, gameState.lastMiningTime]);
 
   const handleBoost = useCallback(() => {
     if (!gameState.miningCycleActive) {
@@ -332,6 +357,7 @@ export default function App() {
         return (
           <CoinClicker
             onMine={handleMine}
+            onClaim={claimMiningReward}
             clickPower={gameState.clickPower}
             isAutoMining={gameState.miningCycleActive}
             balance={displayBalance}

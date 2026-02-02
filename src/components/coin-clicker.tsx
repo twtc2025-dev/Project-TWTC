@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 
 interface CoinClickerProps {
   onMine: () => void;
+  onClaim: () => void;
   clickPower: number;
   isAutoMining: boolean;
   balance: number;
@@ -20,6 +21,7 @@ interface CoinClickerProps {
 
 export function CoinClicker({ 
   onMine, 
+  onClaim,
   clickPower, 
   isAutoMining, 
   balance, 
@@ -36,7 +38,7 @@ export function CoinClicker({
   const MINING_CYCLE_MS = 4 * 60 * 60 * 1000;
 
   useEffect(() => {
-    if (miningActive) {
+    if (miningActive && lastMiningTime > 0) {
       const interval = setInterval(() => {
         const now = Date.now();
         const elapsed = now - lastMiningTime;
@@ -64,7 +66,17 @@ export function CoinClicker({
   }, [miningActive, lastMiningTime]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!miningActive || energy <= 0) return;
+    if (progress === 100) {
+      onClaim();
+      return;
+    }
+
+    if (!miningActive) {
+      onStartCycle();
+      return;
+    }
+
+    if (energy <= 0) return;
     
     // Safety check to ensure onMine exists and is a function
     if (typeof onMine === 'function') {
@@ -189,8 +201,23 @@ export function CoinClicker({
             !miningActive || energy <= 0 ? 'opacity-50 grayscale' : 'cursor-pointer'
           } ${progress === 100 ? 'shadow-[0_0_50px_rgba(74,222,128,0.3)]' : ''}`}
         >
-          <div className="relative z-10">
-            <span className="text-7xl font-black text-white/20 select-none">TW</span>
+          <div className="relative z-10 text-center flex flex-col items-center">
+            {progress === 100 ? (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex flex-col items-center gap-2"
+              >
+                <span className="text-3xl font-black text-green-400 select-none animate-pulse">
+                  20 COINS<br/>READY
+                </span>
+                <div className="bg-green-500/20 px-3 py-1 rounded-full border border-green-500/30">
+                  <span className="text-xs font-bold text-green-400">CLICK TO CLAIM</span>
+                </div>
+              </motion.div>
+            ) : (
+              <span className="text-7xl font-black text-white/20 select-none">TW</span>
+            )}
           </div>
           <div className="absolute inset-0 coin-shine opacity-40" />
           
