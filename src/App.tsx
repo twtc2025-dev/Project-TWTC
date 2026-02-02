@@ -449,7 +449,7 @@ export default function App() {
                         onClick={() => setShowLogoutConfirm(true)}
                       >
                         <LogOut className="h-5 w-5" />
-                        تسجيل الخروج
+                        Log Out
                       </Button>
                     </div>
                   )}
@@ -518,20 +518,20 @@ export default function App() {
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <AlertDialogContent className="bg-cyber-gradient border-white/10 text-white max-w-[90vw] rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
+            <AlertDialogTitle>Log Out</AlertDialogTitle>
             <AlertDialogDescription className="text-white/60">
-              هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إنهاء جلستك الحالية.
+              Are you sure you want to log out? Your current session will be ended.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
             <AlertDialogCancel className="mt-0 flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl">
-              إلغاء
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleLogout}
               className="flex-1 bg-red-500 hover:bg-red-600 text-white border-none rounded-xl"
             >
-              تسجيل الخروج
+              Log Out
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
