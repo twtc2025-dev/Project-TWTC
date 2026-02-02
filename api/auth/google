@@ -6,14 +6,28 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL!,
+      // تأكد أن هذا الرابط مطابق تماماً لما في Google Console و Vercel Env
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://twtc-mining.vercel.app/api/auth/google/callback",
+      proxy: true // ضروري جداً لأن Vercel يعمل خلف Load Balancer/Proxy
     },
     async (_accessToken, _refreshToken, profile, done) => {
-      // هنا تخزن المستخدم في DB أو ترجع profile
-      return done(null, profile);
+      try {
+        // profile يحتوي على (id, displayName, emails, photos)
+        // يمكنك هنا إضافة منطق تخزين المستخدم في قاعدة البيانات
+        return done(null, profile);
+      } catch (error) {
+        return done(error as Error, undefined);
+      }
     }
   )
 );
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+// تخزين بيانات المستخدم في الجلسة (Session)
+passport.serializeUser((user: any, done) => {
+  done(null, user);
+});
+
+// استعادة بيانات المستخدم من الجلسة
+passport.deserializeUser((obj: any, done) => {
+  done(null, obj);
+});
