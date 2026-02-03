@@ -9,7 +9,7 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 // مسار العودة بعد موافقة Google: /api/auth/google/callback
 router.get("/google/callback", 
   passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
+  (_, res) => {
     // عند النجاح، وجه المستخدم للرئيسية أو للوحة التحكم
     res.redirect("/"); 
   }

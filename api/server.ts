@@ -14,14 +14,14 @@ passport.use(new GoogleStrategy({
     callbackURL: "https://twtc-mining.vercel.app/api/auth/google/callback",
     proxy: true
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (_accessToken, _refreshToken, profile, done) => {
     // هنا مستقبلاً يمكنك حفظ المستخدم في قاعدة البيانات
     return done(null, profile);
   }
 ));
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
+passport.serializeUser((user, done) => done(null, user as any));
+passport.deserializeUser((obj, done) => done(null, obj as any));
 
 // 2. إعدادات السيرفر
 app.set("trust proxy", 1);
@@ -58,15 +58,9 @@ app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile",
 
 app.get("/api/auth/google/callback", 
   passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => {
+  (_, res) => {
     // حفظ الجلسة في MongoDB قبل التوجيه
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.redirect("/?error=session_save_failed");
-      }
-      res.redirect("/"); 
-    });
+    res.redirect("/"); 
   }
 );
 
