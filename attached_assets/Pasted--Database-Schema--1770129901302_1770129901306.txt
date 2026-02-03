@@ -1,0 +1,86 @@
+ستنادًا إلى النظام الشامل للتعدين والمهام والإحالات واللوحة، سأقترح لك Database Schema متكاملة قابلة للتنفيذ على أي قاعدة بيانات SQL أو NoSQL، مع كل الجداول الأساسية والعلاقات بينها.
+
+Database Schema – Crypto Mining App
+1️⃣ Users Table
+Column Name	Type	Description
+user_id	UUID / PK	معرف المستخدم الفريد
+username	VARCHAR	اسم المستخدم
+email	VARCHAR	البريد الإلكتروني (يمكن استخدامه لتسجيل الدخول)
+password_hash	VARCHAR	كلمة المرور المشفرة (للتسجيل اليدوي)
+avatar_url	VARCHAR	رابط الصورة الشخصية
+kyc_status	ENUM	Not Started / Pending / Verified
+balance	DECIMAL(18,6)	الرصيد الإجمالي بالعملات
+created_at	TIMESTAMP	تاريخ إنشاء الحساب
+updated_at	TIMESTAMP	تاريخ آخر تحديث
+2️⃣ Mining Sessions Table
+Column Name	Type	Description
+session_id	UUID / PK	معرف الجلسة
+user_id	UUID / FK	ربط المستخدم
+start_time	DATETIME	وقت بدء الجلسة
+end_time	DATETIME	وقت نهاية الجلسة
+base_coins	DECIMAL(18,6)	عملات الجلسة الأساسية (20 لكل جلسة)
+boost_percentage	INT	نسبة التعزيز الحالية (0–100%)
+coins_earned	DECIMAL(18,6)	مجموع العملات المكتسبة مع Boost
+created_at	TIMESTAMP	تاريخ إنشاء السجل
+3️⃣ Tasks Table
+Column Name	Type	Description
+task_id	UUID / PK	معرف المهمة
+title	VARCHAR	عنوان المهمة
+description	TEXT	وصف المهمة
+coins_reward	DECIMAL(18,6)	مكافأة المهمة (10 عملات)
+created_at	TIMESTAMP	تاريخ الإنشاء
+4️⃣ User Tasks Table (سجل المهام لكل مستخدم)
+Column Name	Type	Description
+user_task_id	UUID / PK	معرف السجل
+user_id	UUID / FK	معرف المستخدم
+task_id	UUID / FK	معرف المهمة
+status	ENUM	Pending / Completed / Verified
+coins_awarded	DECIMAL(18,6)	العملات الممنوحة بعد التحقق
+completed_at	TIMESTAMP	وقت اكتمال المهمة
+verified_at	TIMESTAMP	وقت التحقق
+5️⃣ Boost Ads Table
+Column Name	Type	Description
+boost_id	UUID / PK	معرف الإعلان
+user_id	UUID / FK	معرف المستخدم
+session_id	UUID / FK	الجلسة المرتبطة
+percentage	INT	نسبة التعزيز الممنوحة (10% لكل إعلان)
+watched_at	TIMESTAMP	وقت مشاهدة الإعلان
+6️⃣ Referrals Table
+Column Name	Type	Description
+referral_id	UUID / PK	معرف الإحالة
+referrer_id	UUID / FK	المستخدم الذي دعى
+referred_id	UUID / FK	المستخدم المدعو
+status	ENUM	Pending / Active
+coins_awarded	DECIMAL(18,6)	مكافأة 50 عملة بعد التفعيل
+created_at	TIMESTAMP	تاريخ إنشاء الإحالة
+activated_at	TIMESTAMP	وقت التفعيل
+7️⃣ Leaderboard Table
+Column Name	Type	Description
+leaderboard_id	UUID / PK	معرف السجل
+date	DATE	تاريخ التصنيف
+user_id	UUID / FK	المستخدم
+rank	INT	الترتيب اليومي
+referrals_count	INT	عدد الإحالات حتى الآن
+reward_awarded	DECIMAL(18,6)	المكافأة الممنوحة للمركز (إن وجدت)
+created_at	TIMESTAMP	وقت إنشاء السجل
+8️⃣ General Notes
+
+Relations:
+
+Users ↔ Mining Sessions (1:N)
+
+Users ↔ User Tasks ↔ Tasks (M:N)
+
+Users ↔ Boost Ads (1:N)
+
+Users ↔ Referrals (1:N)
+
+Users ↔ Leaderboard (1:N)
+
+Balances Calculation:
+
+balance = SUM(mining_sessions.coins_earned + user_tasks.coins_awarded + referrals.coins_awarded)
+
+All timestamps are UTC for consistency.
+
+Modular structure allows adding future features (NFTs, staking, etc.) easily.
