@@ -267,7 +267,7 @@ export function CoinClicker({
               <Zap className="h-4 w-4 text-white" />
             </motion.div>
             <span className="text-[11px] font-bold text-green-400 bg-black/40 px-2 py-0.5 rounded-full border border-green-500/30 backdrop-blur-sm whitespace-nowrap shadow-lg">
-              40/4h
+              20/4h
             </span>
           </div>
         )}

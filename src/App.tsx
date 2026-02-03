@@ -62,7 +62,7 @@ export interface DailyTask {
 }
 
 const MINING_CYCLE_MS = 4 * 60 * 60 * 1000;
-const MINING_RATE_PER_SEC = 40 / (4 * 60 * 60);
+const MINING_RATE_PER_SEC = 20 / (4 * 60 * 60);
 
 const initialDailyTasks: DailyTask[] = Array.from({ length: 20 }, (_, i) => ({
   id: `task-${i + 1}`,
