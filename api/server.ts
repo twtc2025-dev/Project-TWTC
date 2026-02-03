@@ -1,11 +1,12 @@
 import express from "express"; 
-import cookieSession from "cookie-session"; // تغيير المكتبة هنا
+import session from "express-session";
 import passport from "passport";
 import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 const app = express();
 
+// 1. إعدادات Passport
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -20,36 +21,47 @@ passport.use(new GoogleStrategy({
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
+// 2. إعدادات السيرفر
 app.set("trust proxy", 1);
-app.use(cors({ origin: "https://twtc-mining.vercel.app", credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// التغيير الجذري هنا: استخدام cookie-session بدلاً من express-session
-app.use(cookieSession({
-  name: 'session',
-  keys: [process.env.SESSION_SECRET || "twtc_dev_key"],
-  maxAge: 24 * 60 * 60 * 1000, // 24 ساعة
-  secure: true,
-  sameSite: 'none',
-  httpOnly: true
+// 3. استخدام express-session مع إعدادات تجبر المتصفح على حفظها
+app.use(session({
+  secret: process.env.SESSION_SECRET || "twtc_dev_key",
+  resave: true, // إجبار الجلسة على التحديث
+  saveUninitialized: true, // إجبار إنشاء جلسة حتى لو لم يسجل دخول
+  cookie: { 
+    secure: true, 
+    sameSite: "none", 
+    maxAge: 24 * 60 * 60 * 1000 
+  }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// المسارات
+// 4. المسارات
+app.get("/api/status", (req, res) => res.send("API is back online!"));
+
 app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/api/auth/google/callback", 
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    res.redirect("/"); // الآن المتصفح سيحمل الجلسة معه ولن تضيع
+    // أهم سطر: حفظ الجلسة قبل التوجيه لضمان استقرارها في Vercel
+    req.session.save((err) => {
+      if (err) console.error("Session save error:", err);
+      res.redirect("/"); 
+    });
   }
 );
 
 app.get("/api/user", (req, res) => {
-  if (req.session && req.session.passport && req.session.passport.user) {
-    res.json({ authenticated: true, user: req.session.passport.user });
+  // فحص يدوي للجلسة لضمان أقصى دقة
+  const user = req.user || (req.session && (req.session as any).passport?.user);
+  if (user) {
+    res.json({ authenticated: true, user });
   } else {
     res.json({ authenticated: false });
   }
