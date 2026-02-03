@@ -416,7 +416,10 @@ export default function App() {
 
   // --- إذا لم يكن مسجلاً، اظهر صفحة الدخول ---
   if (!isAuthenticated) {
-    return <AuthPage onLogin={() => window.location.href = '/api/auth/google'} />;
+    return <AuthPage onLogin={(userData) => {
+      console.log("Guest login:", userData);
+      setIsAuthenticated(true);
+    }} />;
   }
 
   // --- التطبيق الرئيسي ---
