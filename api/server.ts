@@ -3,11 +3,29 @@ import session from "express-session";
 import passport from "passport";
 import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import MongoStore from "connect-mongo"; // تم إضافة المكتبة هنا
+import MongoStore from "connect-mongo";
+import mongoose from "mongoose"; // أضفنا mongoose
 
 const app = express();
 
-// 1. إعدادات Passport
+// --- 1. الاتصال بقاعدة البيانات (لضمان حفظ المستخدمين) ---
+if (process.env.MONGODB_URI) {
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(() => console.log("MongoDB Connected"))
+        .catch(err => console.error("MongoDB Connection Error:", err));
+}
+
+// تعريف موديل المستخدم (Schema)
+const userSchema = new mongoose.Schema({
+    googleId: String,
+    displayName: String,
+    email: String,
+    image: String,
+    createdAt: { type: Date, default: Date.now }
+});
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+// --- 2. إعدادات Passport مع الحفظ في القاعدة ---
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -15,31 +33,41 @@ passport.use(new GoogleStrategy({
     proxy: true
   },
   async (accessToken, refreshToken, profile, done) => {
-    // هنا مستقبلاً يمكنك حفظ المستخدم في قاعدة البيانات
-    return done(null, profile);
+    try {
+        let user = await User.findOne({ googleId: profile.id });
+        if (!user) {
+            user = await User.create({
+                googleId: profile.id,
+                displayName: profile.displayName,
+                email: profile.emails[0].value,
+                image: profile.photos[0].value
+            });
+        }
+        return done(null, user);
+    } catch (err) {
+        return done(err, null);
+    }
   }
 ));
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+    const user = await User.findById(id);
+    done(null, user);
+});
 
-// 2. إعدادات السيرفر
+// --- 3. الـ Middleware ---
 app.set("trust proxy", 1);
-app.use(cors({ 
-    origin: "https://twtc-mining.vercel.app", // يفضل وضع الدومين الصريح هنا
-    credentials: true 
-}));
+app.use(cors({ origin: "https://twtc-mining.vercel.app", credentials: true }));
 app.use(express.json());
 
-// 3. التعديل الجذري: ربط الجلسات بـ MongoDB
 app.use(session({
   secret: process.env.SESSION_SECRET || "twtc_dev_key",
-  resave: false, // تم تغييرها لـ false لتقليل الضغط على القاعدة
-  saveUninitialized: false, // لا تحفظ جلسات فارغة
+  resave: false,
+  saveUninitialized: false,
   store: MongoStore.create({ 
-    mongoUrl: process.env.MONGODB_URI, // سيقرأ الرابط من إعدادات Vercel
-    ttl: 14 * 24 * 60 * 60, // سيبقى المستخدم مسجلاً لمدة 14 يوماً
-    autoRemove: 'native' 
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 14 * 24 * 60 * 60
   }),
   cookie: { 
     secure: true, 
@@ -51,38 +79,24 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// 4. المسارات
-app.get("/api/status", (req, res) => res.send("API is back online with MongoDB!"));
-
+// --- 4. المسارات (Routes) ---
+app.get("/api/status", (req, res) => res.send("API Online"));
 app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/api/auth/google/callback", 
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    // حفظ الجلسة في MongoDB قبل التوجيه
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.redirect("/?error=session_save_failed");
-      }
-      res.redirect("/"); 
-    });
+    req.session.save(() => res.redirect("/")); 
   }
 );
 
 app.get("/api/user", (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({ authenticated: true, user: req.user });
-  } else {
-    res.json({ authenticated: false });
-  }
+  res.json(req.isAuthenticated() ? { authenticated: true, user: req.user } : { authenticated: false });
 });
 
-// مسار لتسجيل الخروج ومسح الجلسة من القاعدة
 app.get("/api/logout", (req, res) => {
-  req.logout(() => {
-    res.json({ success: true });
-  });
+  req.logout(() => res.json({ success: true }));
 });
-// ...existing code...
+
+// --- 5. التصدير النهائي المتوافق مع Vercel ---
 export default app;
