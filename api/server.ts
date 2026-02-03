@@ -35,11 +35,11 @@ app.use(express.json());
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "twtc_dev_key",
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
   cookie: { 
     secure: true, 
-    sameSite: "lax",
+    sameSite: "non",
     maxAge: 24 * 60 * 60 * 1000 
   }
 }));
