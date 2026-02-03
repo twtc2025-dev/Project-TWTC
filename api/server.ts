@@ -11,7 +11,7 @@ const app = express();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    callbackURL: "https://twtc-mining.vercel.app/api/auth/google/callback",
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://twtc-mining.vercel.app/api/auth/google/callback",
     proxy: true
   },
   async (_accessToken, _refreshToken, profile, done) => {
