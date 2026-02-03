@@ -9,7 +9,7 @@ import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
-import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play, Menu, X, Home, Users, CheckSquare, TrendingUp, Tool, User } from 'lucide-react';
+import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play, Menu, X, Home, Users, CheckSquare, TrendingUp, Tool, User, Loader2 } from 'lucide-react'; // أضفت Loader2
 import { RewardPopup } from './components/reward-popup';
 import { cn } from './lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./components/ui/sheet";
@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "./components/ui/alert-dialog";
 
+// ... (تثبيت الواجهات والثوابت كما هي دون تغيير)
 export interface GameState {
   coins: number;
   energy: number;
@@ -102,24 +103,13 @@ export default function App() {
       };
     }
     return {
-      coins: 0,
-      energy: 1000,
-      maxEnergy: 1000,
-      totalMined: 0,
-      clickPower: 1,
-      upgrades: initialUpgrades,
-      achievements: initialAchievements,
-      dailyTasks: initialDailyTasks,
-      startTime: Date.now(),
-      totalClicks: 0,
-      lastMiningTime: 0,
-      miningCycleActive: false,
+      coins: 0, energy: 1000, maxEnergy: 1000, totalMined: 0, clickPower: 1,
+      upgrades: initialUpgrades, achievements: initialAchievements,
+      dailyTasks: initialDailyTasks, startTime: Date.now(), totalClicks: 0,
+      lastMiningTime: 0, miningCycleActive: false,
       userGroup: Math.floor(Math.random() * 10) + 1,
-      kycStatus: 'Not Started',
-      lastDailyReset: Date.now(),
-      miningStartTime: Date.now(),
-      bonusFromTasks: 0,
-      currentBoost: 1
+      kycStatus: 'Not Started', lastDailyReset: Date.now(),
+      miningStartTime: Date.now(), bonusFromTasks: 0, currentBoost: 1
     };
   });
 
@@ -128,25 +118,34 @@ export default function App() {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // --- التعديل هنا: حالات التوثيق ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true); // حالة تحميل جديدة
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // --- التحقق من الجلسة عند تشغيل التطبيق ---
+  // --- تحديث دالة التحقق من الهوية لضمان استقرار الربط ---
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/user');
-        const data = await response.json();
-        if (data.authenticated) {
-          setIsAuthenticated(true);
+        // استخدام credentials: 'include' لضمان إرسال الكوكيز للمتصفح
+        const response = await fetch('/api/user', { credentials: 'include' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated) {
+            setIsAuthenticated(true);
+          }
         }
       } catch (error) {
         console.error("Auth check failed:", error);
+      } finally {
+        setIsLoadingAuth(false); // إنهاء حالة التحميل في كل الأحوال
       }
     };
     checkAuth();
   }, []);
 
+  // ... (الوظائف الحسابية والتفاعلية كما هي دون تغيير)
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
     const timeBasedCoins = elapsedSecs * MINING_RATE_PER_SEC;
@@ -296,10 +295,10 @@ export default function App() {
     }));
   }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
-  // --- دالة الخروج المحدثة ---
   const handleLogout = async () => {
     try {
-      // يمكنك إضافة fetch('/api/logout') هنا إذا كان السيرفر يدعمه
+      // محاولة تسجيل الخروج من السيرفر
+      await fetch('/api/logout', { credentials: 'include' });
       setIsAuthenticated(false);
       setShowLogoutConfirm(false);
       setIsDrawerOpen(false);
@@ -405,11 +404,22 @@ export default function App() {
     }
   };
 
+  // --- شاشة التحميل لمنع الوميض والتحويل الخاطئ ---
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+        <p className="text-sm font-medium animate-pulse">Authenticating...</p>
+      </div>
+    );
+  }
+
+  // --- إذا لم يكن مسجلاً، اظهر صفحة الدخول ---
   if (!isAuthenticated) {
-    // صفحة تسجيل الدخول تستخدم الآن مسار جوجل الصحيح
     return <AuthPage onLogin={() => window.location.href = '/api/auth/google'} />;
   }
 
+  // --- التطبيق الرئيسي ---
   return (
     <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex justify-center">
       <div className="relative z-10 w-full max-w-md h-screen flex flex-col pt-2">
@@ -473,17 +483,6 @@ export default function App() {
             <h1 className="text-lg font-bold tracking-tight text-white/90 uppercase">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* تم تحديث الرابط هنا ليعمل مع جوجل */}
-            {!isAuthenticated && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-3 h-7 rounded-full"
-                onClick={() => window.location.href = '/api/auth/google'}
-              >
-                Login
-              </Button>
-            )}
             <Badge variant="outline" className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-2 py-0">
               Group {gameState.userGroup}
             </Badge>
