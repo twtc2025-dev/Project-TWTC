@@ -31,22 +31,29 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 3. التعديل الجذري: ربط الجلسات بـ MongoDB
-app.use(session({
-  secret: process.env.SESSION_SECRET || "twtc_dev_key",
-  resave: false, // تم تغييرها لـ false لتقليل الضغط على القاعدة
-  saveUninitialized: false, // لا تحفظ جلسات فارغة
-  store: MongoStore.create({ 
-    mongoUrl: process.env.MONGODB_URI, // سيقرأ الرابط من إعدادات Vercel
-    ttl: 14 * 24 * 60 * 60, // سيبقى المستخدم مسجلاً لمدة 14 يوماً
-    autoRemove: 'native' 
-  }),
-  cookie: { 
-    secure: true, 
-    sameSite: "none", 
-    maxAge: 24 * 60 * 60 * 1000 
-  }
-}));
+// تحقق من وجود متغير البيئة الخاص بقاعدة البيانات
+if (!process.env.MONGODB_URI) {
+  console.error("خطأ: متغير البيئة MONGODB_URI غير موجود! يجب ضبطه في إعدادات Vercel.");
+  app.use((req, res, next) => {
+    res.status(500).send("خطأ في السيرفر: إعداد قاعدة البيانات غير مكتمل. يرجى مراجعة إعدادات Vercel.");
+  });
+} else {
+  app.use(session({
+    secret: process.env.SESSION_SECRET || "twtc_dev_key",
+    resave: false, // تم تغييرها لـ false لتقليل الضغط على القاعدة
+    saveUninitialized: false, // لا تحفظ جلسات فارغة
+    store: MongoStore.create({ 
+      mongoUrl: process.env.MONGODB_URI, // سيقرأ الرابط من إعدادات Vercel
+      ttl: 14 * 24 * 60 * 60, // سيبقى المستخدم مسجلاً لمدة 14 يوماً
+      autoRemove: 'native' 
+    }),
+    cookie: { 
+      secure: true, 
+      sameSite: "none", 
+      maxAge: 24 * 60 * 60 * 1000 
+    }
+  }));
+}
 
 app.use(passport.initialize());
 app.use(passport.session());
