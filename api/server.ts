@@ -14,14 +14,14 @@ passport.use(new GoogleStrategy({
     callbackURL: "https://twtc-mining.vercel.app/api/auth/google/callback",
     proxy: true
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (_accessToken, _refreshToken, profile, done) => {
     // هنا مستقبلاً يمكنك حفظ المستخدم في قاعدة البيانات
     return done(null, profile);
   }
 ));
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
+passport.serializeUser((user, done) => done(null, user as any));
+passport.deserializeUser((obj, done) => done(null, obj as any));
 
 // 2. إعدادات السيرفر
 app.set("trust proxy", 1);
@@ -31,22 +31,29 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 3. التعديل الجذري: ربط الجلسات بـ MongoDB
-app.use(session({
-  secret: process.env.SESSION_SECRET || "twtc_dev_key",
-  resave: false, // تم تغييرها لـ false لتقليل الضغط على القاعدة
-  saveUninitialized: false, // لا تحفظ جلسات فارغة
-  store: MongoStore.create({ 
-    mongoUrl: process.env.MONGODB_URI, // سيقرأ الرابط من إعدادات Vercel
-    ttl: 14 * 24 * 60 * 60, // سيبقى المستخدم مسجلاً لمدة 14 يوماً
-    autoRemove: 'native' 
-  }),
-  cookie: { 
-    secure: true, 
-    sameSite: "none", 
-    maxAge: 24 * 60 * 60 * 1000 
-  }
-}));
+// تحقق من وجود متغير البيئة الخاص بقاعدة البيانات
+if (!process.env.MONGODB_URI) {
+  console.error("خطأ: متغير البيئة MONGODB_URI غير موجود! يجب ضبطه في إعدادات Vercel.");
+  app.use((req, res, next) => {
+    res.status(500).send("خطأ في السيرفر: إعداد قاعدة البيانات غير مكتمل. يرجى مراجعة إعدادات Vercel.");
+  });
+} else {
+  app.use(session({
+    secret: process.env.SESSION_SECRET || "twtc_dev_key",
+    resave: false, // تم تغييرها لـ false لتقليل الضغط على القاعدة
+    saveUninitialized: false, // لا تحفظ جلسات فارغة
+    store: MongoStore.create({ 
+      mongoUrl: process.env.MONGODB_URI, // سيقرأ الرابط من إعدادات Vercel
+      ttl: 14 * 24 * 60 * 60, // سيبقى المستخدم مسجلاً لمدة 14 يوماً
+      autoRemove: 'native' 
+    }),
+    cookie: { 
+      secure: true, 
+      sameSite: "none", 
+      maxAge: 24 * 60 * 60 * 1000 
+    }
+  }));
+}
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -58,15 +65,9 @@ app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile",
 
 app.get("/api/auth/google/callback", 
   passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => {
+  (_, res) => {
     // حفظ الجلسة في MongoDB قبل التوجيه
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.redirect("/?error=session_save_failed");
-      }
-      res.redirect("/"); 
-    });
+    res.redirect("/"); 
   }
 );
 
