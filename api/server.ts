@@ -1,5 +1,5 @@
 import express from "express"; 
-import session from "express-session";
+import cookieSession from "cookie-session"; // تغيير المكتبة هنا
 import passport from "passport";
 import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
@@ -21,40 +21,35 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
 app.set("trust proxy", 1);
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ origin: "https://twtc-mining.vercel.app", credentials: true }));
 app.use(express.json());
 
-// التعديل الأهم هنا لضمان عمل الجلسة في Vercel
-app.use(session({
-  secret: process.env.SESSION_SECRET || "twtc_dev_key",
-  resave: true, // مهم جداً
-  saveUninitialized: true, // مهم جداً
-  cookie: { 
-    secure: true, 
-    sameSite: "none",
-    domain: ".vercel.app", // يسمح للجلسة بالعمل عبر الروابط الفرعية لـ Vercel
-    maxAge: 24 * 60 * 60 * 1000 
-  }
+// التغيير الجذري هنا: استخدام cookie-session بدلاً من express-session
+app.use(cookieSession({
+  name: 'session',
+  keys: [process.env.SESSION_SECRET || "twtc_dev_key"],
+  maxAge: 24 * 60 * 60 * 1000, // 24 ساعة
+  secure: true,
+  sameSite: 'none',
+  httpOnly: true
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
+// المسارات
 app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/api/auth/google/callback", 
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    // احفظ الجلسة يدوياً قبل التوجيه للتأكد من ثباتها
-    req.session.save(() => {
-      res.redirect("/"); 
-    });
+    res.redirect("/"); // الآن المتصفح سيحمل الجلسة معه ولن تضيع
   }
 );
 
 app.get("/api/user", (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({ authenticated: true, user: req.user });
+  if (req.session && req.session.passport && req.session.passport.user) {
+    res.json({ authenticated: true, user: req.session.passport.user });
   } else {
     res.json({ authenticated: false });
   }
