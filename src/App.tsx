@@ -131,6 +131,22 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // --- التحقق من الجلسة عند تشغيل التطبيق ---
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    };
+    checkAuth();
+  }, []);
+
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
     const timeBasedCoins = elapsedSecs * MINING_RATE_PER_SEC;
@@ -171,8 +187,6 @@ export default function App() {
       toast.error('Not enough energy to start cycle!');
       return;
     }
-    
-    // Simulate mining cycle start without page refresh or black screen
     setGameState(prev => ({
       ...prev,
       energy: prev.energy - 100,
@@ -187,20 +201,16 @@ export default function App() {
     const now = Date.now();
     const elapsed = now - gameState.lastMiningTime;
     const isReady = elapsed >= MINING_CYCLE_MS;
-
     if (!gameState.miningCycleActive) {
       toast.info('Start a mining cycle first');
       return;
     }
-
     if (!isReady) {
       toast.info('Mining in progress...', {
         description: 'Wait for the cycle to complete to claim your reward.'
       });
       return;
     }
-
-    // Logic for claiming 20 coins
     const reward = 20;
     setGameState(prev => ({
       ...prev,
@@ -208,11 +218,8 @@ export default function App() {
       miningCycleActive: false,
       lastMiningTime: 0
     }));
-    
     setRewardAmount(reward);
-    toast.success(`${reward} Coins Added Successfully 🎉`, {
-      icon: '✔️'
-    });
+    toast.success(`${reward} Coins Added Successfully 🎉`);
   }, [gameState.miningCycleActive, gameState.lastMiningTime]);
 
   const handleBoost = useCallback(() => {
@@ -289,11 +296,17 @@ export default function App() {
     }));
   }, [gameState.miningCycleActive, gameState.currentBoost, gameState.energy]);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setShowLogoutConfirm(false);
-    setIsDrawerOpen(false);
-    toast.success('Logged out successfully');
+  // --- دالة الخروج المحدثة ---
+  const handleLogout = async () => {
+    try {
+      // يمكنك إضافة fetch('/api/logout') هنا إذا كان السيرفر يدعمه
+      setIsAuthenticated(false);
+      setShowLogoutConfirm(false);
+      setIsDrawerOpen(false);
+      toast.success('Logged out successfully');
+    } catch (e) {
+      setIsAuthenticated(false);
+    }
   };
 
   const renderContent = () => {
@@ -393,13 +406,14 @@ export default function App() {
   };
 
   if (!isAuthenticated) {
-    return <AuthPage onLogin={() => setIsAuthenticated(true)} />;
+    // صفحة تسجيل الدخول تستخدم الآن مسار جوجل الصحيح
+    return <AuthPage onLogin={() => window.location.href = '/api/auth/google'} />;
   }
 
   return (
     <div className="min-h-screen bg-cyber-gradient overflow-hidden text-white flex justify-center">
       <div className="relative z-10 w-full max-w-md h-screen flex flex-col pt-2">
-        {/* Header - Styled as Mobile App Bar */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
@@ -459,14 +473,17 @@ export default function App() {
             <h1 className="text-lg font-bold tracking-tight text-white/90 uppercase">TWTC</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-3 h-7 rounded-full"
-              onClick={() => window.location.href = '/api/login'}
-            >
-              Login
-            </Button>
+            {/* تم تحديث الرابط هنا ليعمل مع جوجل */}
+            {!isAuthenticated && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-3 h-7 rounded-full"
+                onClick={() => window.location.href = '/api/auth/google'}
+              >
+                Login
+              </Button>
+            )}
             <Badge variant="outline" className="bg-purple-500/10 border-purple-500/50 text-purple-400 text-[10px] px-2 py-0">
               Group {gameState.userGroup}
             </Badge>
