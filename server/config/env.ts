@@ -20,6 +20,10 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || 3000,
   VITE_API_URL: process.env.VITE_API_URL || 'http://localhost:5000',
+  APP_URL: process.env.APP_URL || process.env.VITE_API_URL || 'http://localhost:5173',
+  
+  // Email Service (optional for MVP)
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY || '',
 };
 
 /**

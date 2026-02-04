@@ -23,7 +23,6 @@ passport.use(
             email: profile.emails?.[0]?.value || "",
             username: profile.displayName || profile.emails?.[0]?.value?.split("@")[0] || "user",
             photo: profile.photos?.[0]?.value || "",
-            photo: profile.photos?.[0]?.value || "",
             coins: 0,
             totalMined: 0,
             energy: 1000,

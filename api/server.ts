@@ -135,6 +135,7 @@ app.put("/api/profile", async (req: Request, res: Response) => {
         referralCode: user.referralCode,
         kycStatus: user.kycStatus,
         userGroup: user.userGroup,
+        isEmailVerified: user.isEmailVerified,
       }
     });
   } catch (error) {
@@ -183,6 +184,7 @@ app.get("/api/profile", async (req: Request, res: Response) => {
         userGroup: user.userGroup,
         lastLogin: user.lastLogin,
         createdAt: user.createdAt,
+        isEmailVerified: user.isEmailVerified,
       }
     });
   } catch (error) {

@@ -21,6 +21,22 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    passwordHash: {
+      type: String,
+      default: null, // null si inscription via Google OAuth
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false, // false jusqu'à confirmation
+    },
+    emailVerificationToken: {
+      type: String,
+      default: null,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      default: null,
+    },
     photo: {
       type: String,
       default: null,
@@ -57,15 +73,15 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
-        kycStatus: {
-          type: String,
-          enum: ['Not Started', 'Pending', 'Verified'],
-          default: 'Not Started',
-        },
-        userGroup: {
-          type: Number,
-          default: 1,
-        },
+    },
+    kycStatus: {
+      type: String,
+      enum: ['Not Started', 'Pending', 'Verified'],
+      default: 'Not Started',
+    },
+    userGroup: {
+      type: Number,
+      default: 1,
     },
     lastLogin: {
       type: Date,
