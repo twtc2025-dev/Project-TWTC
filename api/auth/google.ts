@@ -28,4 +28,8 @@ passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
 
-export default passport;
+export default function handler(req: any, res: any) {
+  // Passport strategy is registered as a side effect when this module is imported.
+  res.status(200).json({ ok: true, message: 'Passport strategy registered' });
+}
+

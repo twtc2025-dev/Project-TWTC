@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
-import { User, Referral } from "../lib/mongodb";
-import { generateReferralCode, validateReferralCode } from "../services/referralBackendService";
-import { isAuthenticated } from "../middleware/auth";
+import { User, Referral } from "../lib/mongodb.js";
+import { generateReferralCode, validateReferralCode } from "../services/referralBackendService.js";
+import { isAuthenticated } from "../middleware/auth.js";
 
 const router = Router();
 

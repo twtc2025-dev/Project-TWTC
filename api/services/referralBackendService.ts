@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { User, Referral } from "../lib/mongodb";
+import { User, Referral } from "../lib/mongodb.js";
 
 const REFERRAL_CODE_LENGTH = 6;
 const REFERRAL_REWARD = 50;

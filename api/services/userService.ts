@@ -1,5 +1,5 @@
-import { generateReferralCode } from "../services/referralBackendService";
-import { User } from "../lib/mongodb";
+import { generateReferralCode } from "../services/referralBackendService.js";
+import { User } from "../lib/mongodb.js";
 
 /**
  * Middleware لإنشاء رمز إحالة تلقائياً للمستخدم الجديد
