@@ -80,3 +80,59 @@ export async function createUserWithReferralCode(
     throw error;
   }
 }
+
+/**
+ * Trouver ou créer un utilisateur via Google OAuth
+ */
+export async function findOrCreateUser(profile: {
+  googleId: string;
+  email: string;
+  displayName: string;
+  photo: string;
+}) {
+  try {
+    // Chercher l'utilisateur par googleId
+    let user = await User.findOne({ googleId: profile.googleId });
+
+    if (user) {
+      return user;
+    }
+
+    // L'utilisateur n'existe pas, créer un nouveau
+    const referralCode = generateReferralCode(profile.googleId);
+    const newUser = new User({
+      googleId: profile.googleId,
+      email: profile.email,
+      username: profile.displayName,
+      photo: profile.photo,
+      referralCode,
+      coins: 0,
+    });
+
+    await newUser.save();
+    return newUser;
+  } catch (error) {
+    console.error("Error in findOrCreateUser:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtenir un utilisateur par ID
+ */
+export async function getUserById(userId: string) {
+  try {
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    console.error("Error getting user by ID:", error);
+    throw error;
+  }
+}
+
+export const userService = {
+  findOrCreateUser,
+  getUserById,
+  createUserWithReferralCode,
+  ensureReferralCode,
+};

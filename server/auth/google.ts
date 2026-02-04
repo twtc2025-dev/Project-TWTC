@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { env } from "../config/env.js";
+import { userService } from "../services/userService.js";
 
 passport.use(
   new GoogleStrategy(
@@ -12,7 +13,15 @@ passport.use(
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
-        return done(null, profile);
+        // Créer ou trouver l'utilisateur
+        const user = await userService.findOrCreateUser({
+          googleId: profile.id,
+          email: profile.emails?.[0]?.value || "",
+          displayName: profile.displayName || "",
+          photo: profile.photos?.[0]?.value || "",
+        });
+
+        return done(null, { id: user._id, googleId: user.googleId });
       } catch (error) {
         return done(error as Error, null as any);
       }
@@ -20,12 +29,17 @@ passport.use(
   )
 );
 
-passport.serializeUser((user, done) => {
-  done(null, user);
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
 });
 
-passport.deserializeUser((obj, done) => {
-  done(null, obj);
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await userService.getUserById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
 });
 
 export default passport;
