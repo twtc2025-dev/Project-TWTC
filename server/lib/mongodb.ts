@@ -82,11 +82,8 @@ const ReferralSchema = new mongoose.Schema(
   }
 );
 
-// Create indexes
-UserSchema.index({ referralCode: 1 });
-UserSchema.index({ email: 1 });
-UserSchema.index({ googleId: 1 });
-UserSchema.index({ username: 1 });
+// Indexes already defined via 'unique: true' in schema fields above
+// Removing duplicate indexes to fix Mongoose warnings
 
 ReferralSchema.index({ referrerId: 1 });
 ReferralSchema.index({ referredUserId: 1 });

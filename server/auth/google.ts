@@ -48,16 +48,25 @@ passport.use(
 );
 
 passport.serializeUser((user: any, done) => {
-  // Sérialiser uniquement l'ObjectId MongoDB
-  done(null, user._id.toString());
+  // Sérialiser UNIQUEMENT l'ID ObjectId MongoDB (pas l'objet complet)
+  const userId = user && user._id ? user._id.toString() : null;
+  console.log("📝 Serialize user ID:", userId);
+  done(null, userId);
 });
 
-passport.deserializeUser(async (id: string, done) => {
+passport.deserializeUser(async (id: any, done) => {
   try {
+    // Valider que id est une string ObjectId valide (24 caractères hex)
+    if (!id || typeof id !== 'string' || id.length !== 24) {
+      console.warn("⚠️  Invalid user ID format. Received:", typeof id, id);
+      return done(null, null);
+    }
     const user = await User.findById(id);
+    console.log("👤 Deserialize user:", user?.username);
     done(null, user);
   } catch (error) {
-    done(error);
+    console.error("❌ Deserialize error:", error);
+    done(null, null);
   }
 });
 
