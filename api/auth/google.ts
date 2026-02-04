@@ -26,6 +26,6 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((obj, done) => {
   done(null, obj);
-
-  export default passport;
 });
+
+export default passport;

@@ -5,11 +5,11 @@ import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose";
-import authRoutes from "./routes/auth";
-import referralRoutes from "./routes/referral";
-import { User } from "./lib/mongodb";
-import { createUserWithReferralCode, ensureReferralCode } from "./services/userService";
-import { env, validateEnv } from "./config/env";
+import authRoutes from "./routes/auth.js";
+import referralRoutes from "./routes/referral.js";
+import { User } from "./lib/mongodb.js";
+import { createUserWithReferralCode, ensureReferralCode } from "./services/userService.js";
+import { env, validateEnv } from "./config/env.js";
 
 const app = express();
 
