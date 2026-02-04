@@ -14,9 +14,13 @@ export interface TaskProgress {
 }
 
 export interface Referral {
+  id: string;
+  referrerId: string;
   referredUserId: string;
-  confirmed: boolean;
+  status: "pending" | "confirmed" | "rewarded";
+  rewardGiven: boolean;
   createdAt: Date;
+  confirmedAt?: Date;
 }
 
 export interface User {
@@ -28,6 +32,9 @@ export interface User {
   tasks: TaskProgress[];
   referrals: Referral[];
   referralCode: string;
+  referredBy?: string;
   referralCount: number;
+  totalRewardsEarned: number;
   lastLeaderboardRewardDate?: Date;
+  createdAt: Date;
 }

@@ -4,7 +4,9 @@ import { Progress } from './ui/progress';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { ReferralSection } from './referral-section';
 import { DailyTask, GameState } from '../App';
+import { useState, useEffect } from 'react';
 
 interface UserProfileProps {
   gameState: GameState;
@@ -21,6 +23,29 @@ export function UserProfile({
   onTransactionHistory,
   onStartMining 
 }: UserProfileProps) {
+  const [referralStats, setReferralStats] = useState(null);
+  const [referralLoading, setReferralLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch referral data
+    fetchReferralData();
+  }, []);
+
+  const fetchReferralData = async () => {
+    try {
+      setReferralLoading(true);
+      const response = await fetch('/api/referral/me');
+      if (response.ok) {
+        const data = await response.json();
+        setReferralStats(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch referral data:', error);
+    } finally {
+      setReferralLoading(false);
+    }
+  };
+
   const kycColors = {
     'Not Started': 'bg-slate-500',
     'Pending': 'bg-yellow-500',
@@ -112,7 +137,10 @@ export function UserProfile({
         </div>
       </Card>
 
-      {/* 3. Daily Tasks Summary */}
+      {/* 3. Referral Section */}
+      <ReferralSection stats={referralStats} isLoading={referralLoading} />
+
+      {/* 4. Daily Tasks Summary */}
       <Card className="p-6 bg-slate-900/50 border-slate-800 backdrop-blur-xl overflow-hidden relative">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <CheckCircle2 className="h-16 w-16 text-green-500" />
@@ -151,7 +179,7 @@ export function UserProfile({
         </div>
       </Card>
 
-      {/* 4. Boost & Actions */}
+      {/* 5. Boost & Actions */}
       <div className="grid grid-cols-2 gap-4">
         <Button 
           onClick={onTransactionHistory}
