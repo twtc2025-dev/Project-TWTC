@@ -74,6 +74,124 @@ app.get("/api/user", (req: Request, res: Response) => {
   res.json({ authenticated: false });
 });
 
+// تحديث بيانات المستخدم (Profile)
+app.put("/api/profile", async (req: Request, res: Response) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        success: false,
+        error: "غير مصرح - يرجى تسجيل الدخول"
+      });
+    }
+
+    const userId = (req.user as any)._id;
+    const updates = req.body;
+
+    // الحقول المسموحة بتحديثها
+    const allowedFields = [
+      'coins',
+      'totalMined',
+      'energy',
+      'maxEnergy',
+      'clickPower',
+      'kycStatus',
+      'userGroup'
+    ];
+
+    const safeUpdates: any = {};
+    for (const field of allowedFields) {
+      if (field in updates) {
+        safeUpdates[field] = updates[field];
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      safeUpdates,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "المستخدم غير موجود"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "تم تحديث البيانات بنجاح",
+      profile: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        photo: user.photo,
+        coins: user.coins,
+        totalMined: user.totalMined,
+        energy: user.energy,
+        maxEnergy: user.maxEnergy,
+        clickPower: user.clickPower,
+        referralCode: user.referralCode,
+        kycStatus: user.kycStatus,
+        userGroup: user.userGroup,
+      }
+    });
+  } catch (error) {
+    console.error("❌ Profile update error:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطأ في تحديث البيانات"
+    });
+  }
+});
+// رابط جلب بيانات المستخدم من قاعدة البيانات (Profile متكامل)
+app.get("/api/profile", async (req: Request, res: Response) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        success: false,
+        error: "غير مصرح - يرجى تسجيل الدخول"
+      });
+    }
+
+    const user = await User.findById((req.user as any)._id)
+      .populate('referredBy', 'username referralCode');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "المستخدم غير موجود"
+      });
+    }
+
+    res.json({
+      success: true,
+      profile: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        photo: user.photo,
+        coins: user.coins,
+        totalMined: user.totalMined,
+        energy: user.energy,
+        maxEnergy: user.maxEnergy,
+        clickPower: user.clickPower,
+        referralCode: user.referralCode,
+        referredBy: user.referredBy,
+        kycStatus: user.kycStatus,
+        userGroup: user.userGroup,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+      }
+    });
+  } catch (error) {
+    console.error("❌ Profile fetch error:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطأ في جلب بيانات المستخدم"
+    });
+  }
+});
 // رابط تسجيل الخروج
 app.get("/api/logout", (req, res) => {
   req.logout((err) => {

@@ -25,11 +25,33 @@ export function UserProfile({
 }: UserProfileProps) {
   const [referralStats, setReferralStats] = useState(null);
   const [referralLoading, setReferralLoading] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     // Fetch referral data
     fetchReferralData();
+    // Fetch profile data from MongoDB
+    fetchProfileData();
   }, []);
+
+  const fetchProfileData = async () => {
+    try {
+      setProfileLoading(true);
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setProfileData(data.profile);
+          console.log("✅ Profile data loaded:", data.profile);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch profile data:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const fetchReferralData = async () => {
     try {
@@ -62,22 +84,26 @@ export function UserProfile({
         <div className="flex items-center gap-4 mb-6">
           <div className="relative">
             <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg">
-              {gameState.userGroup || 'U'}
+              {profileData?.photo ? (
+                <img src={profileData.photo} alt={profileData.username} className="h-20 w-20 rounded-2xl object-cover" />
+              ) : (
+                gameState.userGroup || 'U'
+              )}
             </div>
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className="absolute -bottom-1 -right-1 p-1 bg-slate-900 rounded-lg border border-slate-800"
             >
-              <Shield className={`h-4 w-4 ${gameState.kycStatus === 'Verified' ? 'text-green-500' : 'text-slate-400'}`} />
+              <Shield className={`h-4 w-4 ${profileData?.kycStatus === 'Verified' ? 'text-green-500' : 'text-slate-400'}`} />
             </motion.div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-white mb-1">Web3 Explorer</h2>
-            <p className="text-slate-400 text-sm font-mono">ID: #{gameState.startTime ? gameState.startTime.toString().slice(-6) : '000000'}</p>
+            <h2 className="text-xl font-bold text-white mb-1">{profileData?.username || 'Web3 Explorer'}</h2>
+            <p className="text-slate-400 text-sm font-mono">Email: {profileData?.email}</p>
             <div className="flex gap-2 mt-2">
-              <Badge variant="secondary" className={`${kycColors[gameState.kycStatus]} text-white border-0`}>
-                KYC: {gameState.kycStatus}
+              <Badge variant="secondary" className={`${kycColors[profileData?.kycStatus] || kycColors['Not Started']} text-white border-0`}>
+                KYC: {profileData?.kycStatus || 'Not Started'}
               </Badge>
             </div>
           </div>
@@ -91,12 +117,12 @@ export function UserProfile({
             <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Balance</p>
             <div className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-yellow-500" />
-              <span className="text-2xl font-black text-white">{gameState.coins.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
+              <span className="text-2xl font-black text-white">{(profileData?.coins || gameState.coins).toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
             </div>
           </div>
           <div className="text-right">
             <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Total Mined</p>
-            <span className="text-xl font-bold text-slate-300">{gameState.totalMined.toLocaleString()}</span>
+            <span className="text-xl font-bold text-slate-300">{(profileData?.totalMined || gameState.totalMined).toLocaleString()}</span>
           </div>
         </div>
       </Card>

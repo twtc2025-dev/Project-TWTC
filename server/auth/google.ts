@@ -23,8 +23,15 @@ passport.use(
             email: profile.emails?.[0]?.value || "",
             username: profile.displayName || profile.emails?.[0]?.value?.split("@")[0] || "user",
             photo: profile.photos?.[0]?.value || "",
+            photo: profile.photos?.[0]?.value || "",
             coins: 0,
+            totalMined: 0,
+            energy: 1000,
+            maxEnergy: 1000,
+            clickPower: 1,
             referralCode: `ref_${profile.id.slice(0, 8)}`,
+            kycStatus: 'Not Started',
+            userGroup: Math.floor(Math.random() * 10) + 1,
             lastLogin: new Date(),
           });
 

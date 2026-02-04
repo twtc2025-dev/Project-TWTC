@@ -145,6 +145,33 @@ export default function App() {
     checkAuth();
   }, []);
 
+  // دالة لمزامنة بيانات المستخدم مع MongoDB
+  const syncUserDataToDatabase = async (state: GameState) => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          coins: Math.floor(state.coins),
+          totalMined: Math.floor(state.totalMined),
+          energy: Math.floor(state.energy),
+          maxEnergy: state.maxEnergy,
+          clickPower: state.clickPower,
+          kycStatus: state.kycStatus,
+          userGroup: state.userGroup,
+        })
+      });
+
+      if (!response.ok) {
+        console.error("Failed to sync data to database");
+      }
+    } catch (error) {
+      console.error("Database sync error:", error);
+    }
+  };
   // ... (الوظائف الحسابية والتفاعلية كما هي دون تغيير)
   const calculateCurrentBalance = (state: GameState) => {
     const elapsedSecs = (Date.now() - state.miningStartTime) / 1000;
@@ -161,6 +188,14 @@ export default function App() {
     return () => clearInterval(interval);
   }, [gameState]);
 
+  // مزامنة بيانات المستخدم مع MongoDB كل 30 ثانية
+  useEffect(() => {
+    const syncInterval = setInterval(() => {
+      syncUserDataToDatabase(gameState);
+    }, 30000); // كل 30 ثانية
+    
+    return () => clearInterval(syncInterval);
+  }, [gameState, isAuthenticated]);
   useEffect(() => {
     const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;

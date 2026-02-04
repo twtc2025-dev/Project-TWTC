@@ -21,10 +21,31 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    photo: {
+      type: String,
+      default: null,
+    },
     coins: {
       type: Number,
       default: 0,
       min: 0,
+    },
+    totalMined: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    energy: {
+      type: Number,
+      default: 1000,
+    },
+    maxEnergy: {
+      type: Number,
+      default: 1000,
+    },
+    clickPower: {
+      type: Number,
+      default: 1,
     },
     referralCode: {
       type: String,
@@ -36,6 +57,15 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+        kycStatus: {
+          type: String,
+          enum: ['Not Started', 'Pending', 'Verified'],
+          default: 'Not Started',
+        },
+        userGroup: {
+          type: Number,
+          default: 1,
+        },
     },
     lastLogin: {
       type: Date,
