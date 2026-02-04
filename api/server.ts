@@ -2,14 +2,13 @@ import express, { Request, Response } from "express";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose";
 import authRoutes from "../server/routes/auth.js";
 import referralRoutes from "../server/routes/referral.js";
 import { User } from "../server/lib/mongodb.js";
-import { createUserWithReferralCode, ensureReferralCode } from "../server/services/userService.js";
 import { env, validateEnv } from "../server/config/env.js";
+import "../server/auth/google.js"; // Charge la stratégie Google Passport
 
 const app = express();
 
@@ -26,58 +25,8 @@ if (env.MONGODB_URI) {
   console.warn("⚠️  MONGODB_URI not set - check Vercel environment variables");
 }
 
-// --- 2. إعدادات Passport (إجبارية لكي تعمل المسارات) ---
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      callbackURL: env.GOOGLE_CALLBACK_URL,
-      proxy: true,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        // ابحث عن المستخدم بـ Google ID
-        let user = await User.findOne({ googleId: profile.id });
-
-        if (!user) {
-          // أنشئ مستخدم جديد
-          user = await createUserWithReferralCode(
-            profile.displayName || profile.emails?.[0]?.value?.split("@")[0] || "user",
-            profile.emails?.[0]?.value || "",
-            profile.id
-          );
-
-          console.log("✅ New user created:", user.username);
-        } else {
-          // حدّث آخر دخول
-          user.lastLogin = new Date();
-          await user.save();
-
-          console.log("✅ User logged in:", user.username);
-        }
-
-        return done(null, user);
-      } catch (error) {
-        console.error("❌ Google Auth error:", error);
-        return done(error);
-      }
-    }
-  )
-);
-
-passport.serializeUser((user: any, done) => {
-  done(null, user._id || user.id);
-});
-
-passport.deserializeUser(async (id: string, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error);
-  }
-});
+// --- 2. Initialiser Middleware Passport ---
+// (Stratégie Google chargée depuis server/auth/google.ts)
 
 // --- 3. Middleware ---
 app.set("trust proxy", 1);
