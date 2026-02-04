@@ -9,14 +9,18 @@ const REFERRAL_REWARD = 50;
  * Format: ABC-1X2Y3 (3 letters + 3 alphanumeric)
  */
 export function generateReferralCode(userId: string | number): string {
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${userId}-${Date.now()}`)
-    .digest("hex");
-  
-  const letters = hash.slice(0, 3).toUpperCase();
-  const numbers = hash.slice(3, 9).toUpperCase();
-  
+  const buf = crypto.createHash("sha256").update(`${userId}-${Date.now()}`).digest();
+
+  // First 3 bytes -> letters A-Z
+  const letters = Array.from({ length: 3 }, (_, i) => {
+    return String.fromCharCode(65 + (buf[i] % 26));
+  }).join("");
+
+  // Next 6 bytes -> alphanumeric (0-9,A-Z) using base36
+  const numbers = Array.from({ length: 6 }, (_, i) => {
+    return (buf[3 + i] % 36).toString(36).toUpperCase();
+  }).join("");
+
   return `${letters}-${numbers}`;
 }
 

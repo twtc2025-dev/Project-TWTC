@@ -8,7 +8,7 @@ import {
   validateReferralCode,
   canBeReferred,
   processReferralReward,
-} from '../api/services/referralBackendService';
+} from '../server/services/referralBackendService';
 
 describe('Referral System', () => {
   describe('generateReferralCode', () => {

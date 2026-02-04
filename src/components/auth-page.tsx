@@ -14,15 +14,38 @@ interface AuthPageProps {
 export function AuthPage({ onLogin }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login/signup
-    setTimeout(() => {
-      onLogin({ name: 'User', email: 'user@example.com' });
-      setIsLoading(false);
-    }, 1500);
+    if (!isLogin) {
+      // Sign up via API
+      fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, referralCode: undefined }),
+        credentials: 'include',
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && data.success) {
+            onLogin({ name: data.user.username, email: data.user.email });
+          } else {
+            console.error('Signup failed', data);
+          }
+        })
+        .catch((err) => console.error('Signup error', err))
+        .finally(() => setIsLoading(false));
+    } else {
+      // For now use simulated login (OAuth handled by Google button)
+      setTimeout(() => {
+        onLogin({ name: 'User', email: 'user@example.com' });
+        setIsLoading(false);
+      }, 800);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -85,6 +108,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                     <Input 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       placeholder="Username" 
                       className="bg-white/5 border-white/10 pl-10 h-11 rounded-xl focus:ring-purple-500/50" 
                       required 
@@ -98,6 +123,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                   <Input 
                     type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email Address" 
                     className="bg-white/5 border-white/10 pl-10 h-11 rounded-xl focus:ring-purple-500/50" 
                     required 
@@ -110,6 +137,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                   <Input 
                     type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password" 
                     className="bg-white/5 border-white/10 pl-10 h-11 rounded-xl focus:ring-purple-500/50" 
                     required 

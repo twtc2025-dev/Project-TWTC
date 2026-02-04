@@ -2,12 +2,8 @@
  * مثال عملي لدمج نظام الإحالات في عملية التسجيل
  * يمكن إضافة هذا في صفحة التسجيل أو في الـ Auth flow
  */
-
 import { getReferralCodeFromURL, trackReferral } from '../services/referralService';
 
-/**
- * معالج التسجيل مع دعم الإحالات
- */
 export async function handleSignUpWithReferral(newUserId: string, userEmail: string) {
   try {
     // 1. الحصول على كود الإحالة من URL
@@ -107,50 +103,3 @@ export function WelcomeScreen({ isNewUser, referralCode }: { isNewUser: boolean;
     </div>
   );
 }
-
-/**
- * مثال على استدعاء في Signup Form
- */
-/*
-import { useState } from 'react';
-
-export function SignupForm() {
-  const [loading, setLoading] = useState(false);
-
-  const handleSignup = async (formData: any) => {
-    try {
-      setLoading(true);
-      
-      // تسجيل المستخدم
-      const signupResponse = await fetch('/api/auth/signup', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-      });
-
-      const newUser = await signupResponse.json();
-
-      // معالجة الإحالة
-      await handleSignUpWithReferral(newUser.id, newUser.email);
-
-      // التوجيه للصفحة الرئيسية
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Signup error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      handleSignup({
-        email: 'user@example.com',
-        password: 'password123',
-      });
-    }}>
-      {/* form fields */}
-    </form>
-  );
-}
-*/

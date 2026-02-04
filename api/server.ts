@@ -90,7 +90,8 @@ app.put("/api/profile", async (req: Request, res: Response) => {
     // الحقول المسموحة بتحديثها
     const allowedFields = [
       'coins',
-      'totalMined',
+        'totalMined',
+        'username',
       'energy',
       'maxEnergy',
       'clickPower',
