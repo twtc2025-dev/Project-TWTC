@@ -11,6 +11,7 @@ import { AnimatedCounter } from './components/ui/animated-counter';
 import { toast } from 'sonner';
 import { Cpu, Monitor, Zap, Rocket, Target, Clock, Coins, Star, Shield, MapPin, Play, Menu, X, Home, Users, CheckSquare, TrendingUp, Tool, User, Loader2 } from 'lucide-react'; // أضفت Loader2
 import { RewardPopup } from './components/reward-popup';
+import AdSense from './components/AdSense';
 import { cn } from './lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./components/ui/sheet";
 
@@ -391,6 +392,7 @@ export default function App() {
                 ))}
               </CardContent>
             </Card>
+            <AdSense className="mx-4" adSlot="tasks-slot-0001" />
             <Achievements achievements={gameState.achievements} onClaim={handleClaimAchievement} getAchievementIcon={(key) => initialAchievements.find(a => a.iconKey === key)?.iconKey || Target} />
           </div>
         );
@@ -423,18 +425,21 @@ export default function App() {
         );
       default:
         return (
-          <CoinClicker
-            onMine={handleMine}
-            onClaim={claimMiningReward}
-            clickPower={gameState.clickPower}
-            isAutoMining={gameState.miningCycleActive}
-            balance={displayBalance}
-            lastMiningTime={gameState.lastMiningTime}
-            miningActive={gameState.miningCycleActive}
-            onStartCycle={startMiningCycle}
-            energy={gameState.energy}
-            maxEnergy={gameState.maxEnergy}
-          />
+          <>
+            <AdSense className="mx-4 mt-4" adSlot="home-slot-0001" />
+            <CoinClicker
+              onMine={handleMine}
+              onClaim={claimMiningReward}
+              clickPower={gameState.clickPower}
+              isAutoMining={gameState.miningCycleActive}
+              balance={displayBalance}
+              lastMiningTime={gameState.lastMiningTime}
+              miningActive={gameState.miningCycleActive}
+              onStartCycle={startMiningCycle}
+              energy={gameState.energy}
+              maxEnergy={gameState.maxEnergy}
+            />
+          </>
         );
     }
   };
